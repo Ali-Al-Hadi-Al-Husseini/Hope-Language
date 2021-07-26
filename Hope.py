@@ -10,7 +10,7 @@ TT_RPARENT = 'RPAREN'
 TT_EOF = 'EOF'
 
 class Error:
-    def __init__(self, pos_start, pos_end, error_name, details) -> None:
+    def __init__(self, pos_start: int, pos_end: int, error_name: str, details: str) -> None:
         self.error_name = error_name
         self.details = details
         self.pos_start = pos_start
@@ -22,15 +22,15 @@ class Error:
         return result
 
 class IllegalCharError(Error):
-    def __init__(self,pos_start, pos_end, details='') -> None:
+    def __init__(self,pos_start :int, pos_end: int, details='') -> None:
         super().__init__(pos_start, pos_end, 'Illegal Character', details)
 
 class InavlidSyntaxErorr(Error):
-    def __init__(self, pos_start, pos_end, details= '') -> None:
+    def __init__(self, pos_start: int, pos_end: int, details= '') -> None:
         super().__init__(pos_start, pos_end, "Invalid Syntax", details)
 
 class Position:
-    def __init__(self, idx, line, col, fn, ftxt) -> None:
+    def __init__(self, idx: int, line: int, col: int, fn: str, ftxt: str) -> None:
         self.idx = idx
         self.line = line
         self.col = col
@@ -51,7 +51,7 @@ class Position:
 
 
 class Token():
-    def __init__(self, _type, value=None, start_pos=None, end_pos=None) -> None:
+    def __init__(self, _type: str, value=None, start_pos=None, end_pos=None) -> None:
         self.type = _type
         self.value = value
 
@@ -70,8 +70,8 @@ class Token():
 
 
 class Lexer:
-    def __init__(self, text, fn) -> None:
-        self.fn = fn
+    def __init__(self, text: str, fn: str) -> None:
+        self.fn = fn #filename
         self.text = text
         self.position = Position(-1, 0, -1, fn, text)
         self.current_char = None
@@ -147,7 +147,7 @@ class Lexer:
             return Token(TT_FLOAT, float(num_str, pos_start, self.position))
 
 class NumberNode:
-    def __init__(self,token) -> None:
+    def __init__(self,token : Token) -> None:
         self.token = token
 
     def __repr__(self) -> str:
@@ -279,9 +279,9 @@ class Parser:
         
 
 
-def Run(text, fn):
+def Run(text: str, fn: str):
     #generate tokens
-    lexer = Lexer(fn, text)
+    lexer = Lexer(text, fn)
     tokens, error = lexer.make_tokens()
     if error:return None ,error
     # generate Ast
@@ -316,4 +316,3 @@ def string_with_arrows(text, pos_start, pos_end):
         if idx_end < 0: idx_end = len(text)
 
     return result.replace('\t', '')
-
