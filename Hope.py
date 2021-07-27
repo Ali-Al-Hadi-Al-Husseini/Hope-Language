@@ -1,3 +1,4 @@
+
 DIGITS = '0123456789'
 TT_INT = 'TT_INT'
 TT_FLOAT = 'FLOAT'
@@ -9,10 +10,11 @@ TT_LPAREN = 'LPAREN'
 TT_RPARENT = 'RPAREN'
 TT_EOF = 'EOF'
 
+
 class Error:
     def __init__(self, pos_start: int, pos_end: int, error_name: str, details: str) -> None:
-        self.error_name = error_name
-        self.details = details
+        self.error_name = error_name # gives the type of the error if it is syntax error  Illegal Char Error etc..
+        self.details = details # what wrong with code it is like a description
         self.pos_start = pos_start
         self.pos_end = pos_end
 
@@ -29,15 +31,21 @@ class InavlidSyntaxErorr(Error):
     def __init__(self, pos_start: int, pos_end: int, details= '') -> None:
         super().__init__(pos_start, pos_end, "Invalid Syntax", details)
 
+class RunTimeEror(Error):
+    def __init__(self, pos_start: int, pos_end: int, details= '') -> None:
+        super().__init__(pos_start, pos_end, "Runtime Error", details)
+
 class Position:
     def __init__(self, idx: int, line: int, col: int, fn: str, ftxt: str) -> None:
         self.idx = idx
         self.line = line
         self.col = col
-        self.fn = fn    
-        self.ftxt = ftxt
-
+        self.fn = fn    # file name
+        self.ftxt = ftxt # file text
+        
+    
     def advance(self, current_char=None):
+        # inceases the position by one
         self.idx += 1
         self.col += 1
 
@@ -82,6 +90,7 @@ class Lexer:
         self.current_char = self.text[self.position.idx] if self.position.idx < len(
             self.text) else None
 
+    # this method takes the text and converts it into tokens
     def make_tokens(self):
         tokens = []
 
@@ -149,23 +158,29 @@ class Lexer:
 class NumberNode:
     def __init__(self,token : Token) -> None:
         self.token = token
+        self.pos_start = token.start_pos
+        self.pos_end = token.end_pos
 
     def __repr__(self) -> str:
         return f'{self.token}'
 
 class unaryoperationNode:
     def __init__(self, operator_token , node) -> None:
-        self.operator_token = operator_token
+        self.operation_token = operator_token
         self.node = node
+        self.pos_start = operator_token.start_pos
+        self.pos_end = node.pos_end
 
     def __repr__(self) -> str:
         return f'({self.operator_token}, {self.node})'
 
 class BinOpertaionNode:
-    def __init__(self, right_node, opertaion, left_node) -> None:
-        self.operation = opertaion
+    def __init__(self, right_node, operation_token, left_node) -> None:
+        self.operation_token = operation_token
         self.left_node = left_node
         self.right_node = right_node
+        self.pos_start = left_node.pos_start
+        self.pos_end = right_node.pos_end
 
     def __repr__(self) -> str:
         return f'( {self.left_node} {self.operation} {self.right_node} )'
@@ -275,7 +290,78 @@ class Parser:
 
         return res.Sucsses(left)
 
+class RuntimeResult:
+    pass
+
+class Number:
+    def __init__(self, value) -> None:
+        self.value = value
+        self.set_position()
+
+    def set_position(self, pos_start = None , pos_end = None):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+        return self 
+
+    def addition(self,other_num):
+        if isinstance(other_num, Number):
+            return Number(self.value + other_num.value)
+
+    def subtract(self,other_num):
+        if isinstance(other_num, Number):
+            return Number(self.value - other_num.value)
+            
+    def multiply(self,other_num):
+        if isinstance(other_num, Number):
+            return Number(self.value * other_num.value)
+
+    def divide(self,other_num):
+        if isinstance(other_num, Number):
+            return Number(self.value / other_num.value)
+
+    def __repr__(self) -> str:
+        return f'{self.value}'
+
+class Interpreter:
+    def visit(self,node):
+        method_name = f"visit_{type(node).__name__}"
+        method = getattr(self,method_name,self.no_visit_method)
+        return method(node)
+    
+    def no_visit_method(self,node ):
+        raise Exception(f"No visit_{type(node).__name__} method defined")
+
+    def visit_BinOpertaionNode(self, node):
+        left = self.visit(node.left_node)
+        right = self.visit(node.right_node)
         
+        result = None
+        if node.operation_token.type == TT_PLUS:
+            result =  left.addition(right)
+        
+        elif node.operation_token.type == TT_MINUS:
+            result = left.subtract(right)
+
+        elif node.operation_token.type == TT_MUL:
+            result =  left.multiply(right)
+            
+        elif node.operation_token.type == TT_DIV:
+            result =  left.divide(right)
+        
+        return result.set_position(node.pos_start,node.pos_end)
+    
+    def visit_unaryoperationNode(self,node):
+        number = self.visit(node.node) 
+
+        if node.operation_token.type == TT_MINUS:
+            number = number.multiply(Number(-1))
+
+        return number.set_position(node.pos_start,node.pos_end)
+
+    def visit_NumberNode(self,node):
+        return Number(node.token.value).set_position(node.pos_start,node.pos_end)
+    
         
 
 
@@ -286,8 +372,13 @@ def Run(text: str, fn: str):
     if error:return None ,error
     # generate Ast
     parser = Parser(tokens)
-    ast = parser.parse()
-    return ast.node, ast.error
+    ast = parser.parse() # abstract syntax tree
+    if ast.error :return None, ast.error
+    
+    interpreter = Interpreter()
+    result = interpreter.visit(ast.node)
+    
+    return result, None
 
 # this is not my code 
 def string_with_arrows(text, pos_start, pos_end):
