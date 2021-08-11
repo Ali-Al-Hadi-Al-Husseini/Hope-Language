@@ -13,12 +13,21 @@ TT_POW        = 'POW'
 TT_LPAREN     = 'LPAREN'
 TT_RPARENT    = 'RPAREN'
 TT_EQ         = 'EQ'
+TT_EE         = 'EE'
+TT_GT         = 'GT'
+TT_NE         = 'NE'
+TT_LT         = 'LT'
+TT_GTE        = 'GTE'
+TT_LTE        = 'LTE'    
 TT_KEYWORD    = 'KEYWORD'
 TT_IDENTIFIER = 'IDENTIFIER'
 TT_EOF        = 'EOF'
 
 KEYWORDS = [ 
     'let',
+    'and',
+    'or',
+    'not'
 ]
 
 class Error:
@@ -45,6 +54,10 @@ class RunTimeError(Error):
     def __init__(self, pos_start: int, pos_end: int, details,context) -> None:
         super().__init__(pos_start, pos_end, "Runtime Error", details)
         self.context = context
+
+class ExpectedCharError(Error):
+    def __init__(self, pos_start: int, pos_end: int, error_name: str, details: str) -> None:
+        super().__init__(pos_start, pos_end, error_name, details)
 
     def as_string(self):
         result = self.generate_traceback()
@@ -148,6 +161,11 @@ class Lexer:
                 tokens.append(Token(TT_MUL, start_pos=self.position))
                 self.advance()
 
+            elif self.current_char == '!':
+                token, error = self.make_not_equal()
+                if error: return [], error
+                self.advance()
+
             elif self.current_char == '/':
                 tokens.append(Token(TT_DIV, start_pos=self.position))
                 self.advance()
@@ -165,7 +183,15 @@ class Lexer:
                 self.advance()
 
             elif self.current_char == '=':
-                tokens.append(Token(TT_EQ, start_pos=self.position))
+                tokens.append(self.make_equal())
+                
+
+            elif self.current_char == '<':
+                tokens.append(self.make_GT_LT())
+                self.advance()
+
+            elif self.current_char == '>':
+                tokens.append(self.make_GT_LT())
                 self.advance()
 
             else:
@@ -209,6 +235,34 @@ class Lexer:
         token_type = TT_KEYWORD if id_str in KEYWORDS else TT_IDENTIFIER  
         return Token(token_type,id_str,pos_start,self.position)
 
+    def make_not_equal(self):
+        pos_start = self.position.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            return Token(TT_NE,start_pos=pos_start,end_pos=self.position), None
+
+        return None, ExpectedCharError(pos_start,self.position, "Expected '=' after '!' ") 
+    
+    def make_equal(self):
+        start_pos = self.position.copy()
+        self.advance()
+        if self.current_char == "=":
+            self.advance()
+            return Token(TT_EE,start_pos=start_pos,end_pos=self.position)
+
+        return Token(TT_EQ,start_pos=start_pos,end_pos=self.position())
+        
+    def make_GT_LT(self):
+        start_pos = self.position.copy
+        Token_type = TT_GT if self.current_char == ">" else TT_LT
+        self.advance()
+        
+        if self.current_char == '=':
+            Token_type += 'E'
+            self.advance()
+
+        return Token(Token_type,start_pos=start_pos,end_pos=self.position)
 
 # nodes
 
