@@ -1,7 +1,7 @@
 import string
 
 DIGITS        = '0123456789'
-LETTERS       = string.ascii_letters
+LETTERS       = string.ascii_letters # t
 LETTER_DIGITS = LETTERS + DIGITS
 TT_INT        = 'TT_INT'
 TT_FLOAT      = 'FLOAT'
@@ -9,18 +9,18 @@ TT_PLUS       = 'PLUS'
 TT_MINUS      = 'MINUS'
 TT_MUL        = 'MUL'
 TT_DIV        = 'DIV'
-TT_POW        = 'POW'
+TT_POW        = 'POW'# power token 
 TT_LPAREN     = 'LPAREN'
 TT_RPARENT    = 'RPAREN'
-TT_EQ         = 'EQ'
-TT_EE         = 'EE'
-TT_GT         = 'GT'
-TT_NE         = 'NE'
-TT_LT         = 'LT'
-TT_GTE        = 'GTE'
-TT_LTE        = 'LTE'    
-TT_KEYWORD    = 'KEYWORD'
-TT_IDENTIFIER = 'IDENTIFIER'
+TT_EQ         = 'EQ' # equals token 
+TT_EE         = 'EE' # equals equals '==' token used in comparison operatores
+TT_GT         = 'GT' # greater then '>' operator token
+TT_NE         = 'NE' # not equals then '!=' operator token
+TT_LT         = 'LT' # less then '<' operator token
+TT_GTE        = 'GTE' # greater then  or equal '>=' operator token
+TT_LTE        = 'LTE' # less then or equals '<=' operator token
+TT_KEYWORD    = 'KEYWORD' # keyword that are used by the language 
+TT_IDENTIFIER = 'IDENTIFIER' # names that are given by the user to name variables, fucntions ...
 TT_EOF        = 'EOF'
 
 KEYWORDS = [ 
@@ -30,6 +30,7 @@ KEYWORDS = [
     'not'
 ]
 
+# this class is made for other claases to inherit from 
 class Error:
     def __init__(self, pos_start: int, pos_end: int, error_name: str, details: str) -> None:
         self.error_name = error_name # gives the type of the error if it is syntax error  Illegal Char Error etc..
@@ -78,6 +79,8 @@ class ExpectedCharError(Error):
 
         return 'Traceback (most recent call last):\n' + result
 
+
+# this class tracks the postion of a token to display where is the error if ther any 
 class Position:
     def __init__(self, idx: int, line: int, col: int, fn: str, ftxt: str) -> None:
         self.idx = idx
@@ -100,6 +103,8 @@ class Position:
     def copy(self):
         return Position(self.idx, self.line, self.col,self.fn,self.ftxt)
 
+
+# relates the type (from the token types defined above )of a token with it value a 
 class Token():
     def __init__(self, _type: str, value=None, start_pos=None, end_pos=None) -> None:
         self.type = _type
@@ -121,7 +126,9 @@ class Token():
     def matches(self, _type, value):
         return self.type == _type and self.value == value
 
-class Lexer:
+
+# takes raw string input and outputs a list of all token created from the given text/str
+class Tokenizer:
     def __init__(self, text: str, fn: str) -> None:
         self.fn = fn #filename
         self.text = text
@@ -134,7 +141,7 @@ class Lexer:
         self.current_char = self.text[self.position.idx] if self.position.idx < len(
             self.text) else None
 
-    # this method takes the text and converts it into tokens
+    # this method takes the text and converts it into tokens by comparing the current char with possible token 
     def make_tokens(self):
         tokens = []
 
@@ -203,6 +210,7 @@ class Lexer:
         tokens.append(Token(TT_EOF, start_pos=self.position))
         return tokens, None
 
+    #checks weather a number is float or int and returns a token back with it's type
     def make_number(self):
         num_str = ''
         dot_count = 0
@@ -251,10 +259,12 @@ class Lexer:
             self.advance()
             return Token(TT_EE,start_pos=start_pos,end_pos=self.position)
 
-        return Token(TT_EQ,start_pos=start_pos,end_pos=self.position())
-        
+        return Token(TT_EQ,start_pos=start_pos,end_pos=self.position)
+
+
+    # a function  that checks if '>' or '<'  are followed by and equals sign '=' to change its type
     def make_GT_LT(self):
-        start_pos = self.position.copy
+        start_pos = self.position.copy()
         Token_type = TT_GT if self.current_char == ">" else TT_LT
         self.advance()
         
@@ -337,6 +347,8 @@ class ParserResult:
             self.error = error
         return self
 
+    
+# takes the list of token that are returned by the tokenizer and then atates at what order should those token be executed 
 class Parser:
     def __init__(self,Tokens) -> None:
         self.tokens = Tokens
@@ -361,6 +373,7 @@ class Parser:
 
         return res
     
+# to understanf the order of this reader grammers .txt
     def Most(self):
         res = ParserResult()
         token = self.curr_token
@@ -414,6 +427,31 @@ class Parser:
 
     def Term(self):
         return self.bin_op(self.Factor, (TT_MUL, TT_DIV))
+    
+    def arithmetic_expression(self):
+        return self.bin_op(self.Term, (TT_PLUS, TT_MINUS))
+
+    def Comparison_expression(self):
+        res = ParserResult()
+
+        if self.curr_token.matches(TT_KEYWORD, "not"):
+            operation_token = self.curr_token
+            res.Register_advancement()
+            self.advance()
+
+            node  = res.Register(self.Comparison_expression())
+            if res.error :return res
+            return res.Sucsses(unaryoperationNode(operation_token,node))
+
+        node = res.Register(self.bin_op(self.arithmetic_expression,(TT_EE, TT_NE, TT_LT, TT_GT, TT_GTE, TT_LTE)))
+        
+        if res.error: 
+            return res.failure(InvalidSyntaxErorr(
+            self.curr_token.start_pos, self.curr_token.end_pos,
+            "Expected int, float, identifier, '+', '-' , '(' or 'not' "
+        ))
+
+        return res.Sucsses(node)
 
     def Expression(self):
         res = ParserResult()
@@ -442,7 +480,7 @@ class Parser:
             if res.error:return res
             return res.Sucsses(var_assign_node(variable_name, expression))
 
-        node =  res.Register(self.bin_op(self.Term, (TT_PLUS, TT_MINUS)))
+        node =  res.Register(self.bin_op(self.Comparison_expression, ((TT_KEYWORD,"and"),  (TT_KEYWORD, "or"))))
 
         if res.error: 
             return res.failure(InvalidSyntaxErorr(
@@ -460,7 +498,7 @@ class Parser:
         left = res.Register(func_a())
         if res.error: return res
 
-        while self.curr_token.type in ops:
+        while self.curr_token.type in ops or (self.curr_token.type,self.curr_token.value) in ops:
             op_tok = self.curr_token
             res.Register_advancement()
             self.advance()
@@ -530,6 +568,41 @@ class Number:
         if isinstance(other_num, Number):
             return Number(self.value ** other_num.value).set_context(self.context), None    
 
+    def get_EE(self,other):
+        if isinstance(other, Number):
+            return Number(int(self.value == other.value)).set_context(self.context), None 
+
+    def get_NE(self,other):
+        if isinstance(other, Number):
+            return Number(int(self.value != other.value)).set_context(self.context), None 
+
+    def get_GT(self,other):
+        if isinstance(other, Number):
+            return Number(int(self.value > other.value)).set_context(self.context), None 
+
+    def get_LT(self,other):
+        if isinstance(other, Number):
+            return Number(int(self.value < other.value)).set_context(self.context), None 
+
+    def get_LTE(self,other):
+        if isinstance(other, Number):
+            return Number(int(self.value <= other.value)).set_context(self.context), None 
+
+    def get_GTE(self,other):
+        if isinstance(other, Number):
+            return Number(int(self.value >= other.value)).set_context(self.context), None 
+
+    def and_with(self,other):
+        if isinstance(other, Number):
+           return Number(int(self.value and other.value)).set_context(self.context), None 
+
+    def or_with(self,other):
+        if isinstance(other, Number):
+            return Number(int(self.value or other.value)).set_context(self.context), None 
+
+    def _not(self):
+        return Number(1 if self.value == 0 else 0).set_context(self.context), None 
+
     def copy(self):
         copy = Number(self.value)
         copy.set_position(self.pos_start,self.pos_end)
@@ -563,6 +636,8 @@ class SymbolTable:
     def remove(self, name):
         del self.symbols[name]
 
+# this class takes the nodes after they were order with the parser
+# and then executes them in order  
 class Interpreter:
     def visit(self,node, context):
         method_name = f"visit_{type(node).__name__}"
@@ -619,6 +694,31 @@ class Interpreter:
 
         elif node.operation_token.type == TT_POW:
             result, error =  left.powered(right)
+
+        elif node.operation_token.type == TT_EE:
+            result, error =  left.get_EE(right)
+
+        elif node.operation_token.type == TT_NE:
+            result, error =  left.get_NE(right)
+
+        elif node.operation_token.type == TT_GT:
+            result, error =  left.get_GT(right)
+
+        elif node.operation_token.type == TT_LT:
+            result, error =  left.get_LT(right)
+
+        elif node.operation_token.type == TT_GTE:
+            result, error =  left.get_GTE(right)
+        
+        elif node.operation_token.type == TT_LTE:
+            result, error =  left.get_LTE(right)
+        
+        elif node.operation_token.matches(TT_KEYWORD,"and"):
+            result, error =  left.and_with(right)
+        
+        elif node.operation_token.matches(TT_KEYWORD, "or"):
+            result, error =  left.or_with(right)
+
     
         if error:
             return res.failure(error)
@@ -634,6 +734,10 @@ class Interpreter:
         if node.operation_token.type == TT_MINUS:
             number, error = number.multiply(Number(-1))
 
+        elif node.operation_token.matches(TT_KEYWORD, 'not'):
+            number, error = number._not()
+
+
         if error:
             return res.failure(error)
         else:
@@ -644,15 +748,17 @@ class Interpreter:
             Number(node.token.value).set_context(context).set_position(node.pos_start,node.pos_end)
         )
 
-
+    
 global_symbol_table = SymbolTable()
 global_symbol_table.set("null", Number(0))
+global_symbol_table.set("false ", Number(0))
+global_symbol_table.set("true", Number(1))
 
 
 def Run(text: str, fn: str):
     #generate tokens
-    lexer = Lexer(text, fn)
-    tokens, error = lexer.make_tokens()
+    tokenizer = Tokenizer(text, fn)
+    tokens, error =tokenizer.make_tokens()
     if error:return None ,error
     # generate Ast
     parser = Parser(tokens)
