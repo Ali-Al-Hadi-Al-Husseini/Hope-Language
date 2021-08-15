@@ -1,29 +1,35 @@
+""" HOPE LANGUAGE GRAMMERS
+
+"""
+
 import string
 
 DIGITS        = '0123456789'
 LETTERS       = string.ascii_letters # t
 LETTER_DIGITS = LETTERS + DIGITS
-TT_INT        = 'TT_INT'
-TT_FLOAT      = 'FLOAT'
-TT_PLUS       = 'PLUS' 
-TT_MINUS      = 'MINUS'
-TT_MUL        = 'MUL'
-TT_DIV        = 'DIV'
-TT_POW        = 'POW'# power token 
-TT_LPAREN     = 'LPAREN'
-TT_RPARENT    = 'RPAREN'
-TT_EQ         = 'EQ' # equals token 
-TT_EE         = 'EE' # equals equals '==' token used in comparison operatores
-TT_GT         = 'GT' # greater then '>' operator token
-TT_NE         = 'NE' # not equals then '!=' operator token
-TT_LT         = 'LT' # less then '<' operator token
-TT_GTE        = 'GTE' # greater then  or equal '>=' operator token
-TT_LTE        = 'LTE' # less then or equals '<=' operator token
-TT_KEYWORD    = 'KEYWORD' # keyword that are used by the language 
-TT_IDENTIFIER = 'IDENTIFIER' # names that are given by the user to name variables, fucntions ...
-TT_EOF        = 'EOF'
-TT_RCURLY      = 'RCURLY'
-TT_LCURLY      = 'LSCURLY'
+TOKEN_INT        = 'TOKEN_INT'
+TOKEN_FLOAT      = 'FLOAT'
+TOKEN_PLUS       = 'PLUS' 
+TOKEN_MINUS      = 'MINUS'
+TOKEN_MUL        = 'MUL'
+TOKEN_DIV        = 'DIV'
+TOKEN_POW        = 'POW'# power token 
+TOKEN_LPAREN     = 'LPAREN'
+TOKEN_RPARENT    = 'RPAREN'
+TOKEN_EQ         = 'EQ' # equals token 
+TOKEN_EE         = 'EE' # equals equals '==' token used in comparison operatores
+TOKEN_GT         = 'GT' # greater then '>' operator token
+TOKEN_NE         = 'NE' # not equals then '!=' operator token
+TOKEN_LT         = 'LT' # less then '<' operator token
+TOKEN_GTE        = 'GTE' # greater then  or equal '>=' operator token
+TOKEN_LTE        = 'LTE' # less then or equals '<=' operator token
+TOKEN_KEYWORD    = 'KEYWORD' # keyword that are used by the language 
+TOKEN_IDENTIFIER = 'IDENTIFIER' # names that are given by the user to name variables, fucntions ...
+TOKEN_EOF        = 'EOF'
+TOKEN_LCURLY      = 'LCURLY'
+TOKEN_RCURLY      = 'RCURLY'
+TOKEN_UNTIL       = 'UNTIL'
+TOKEN_SKIP        = 'SKIP'
 KEYWORDS = [ 
     'let',
     'and',
@@ -31,7 +37,9 @@ KEYWORDS = [
     'not',
     'if',
     'elif',
-    'else'
+    'else',
+    'while',
+    'for'
 ]
 
 # this class is made for other claases to inherit from 
@@ -161,15 +169,15 @@ class Tokenizer:
                 tokens.append(self.make_identifier())
 
             elif self.current_char == '+':
-                tokens.append(Token(TT_PLUS, start_pos=self.position))
+                tokens.append(Token(TOKEN_PLUS, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '-':
-                tokens.append(Token(TT_MINUS, start_pos=self.position))
+                tokens.append(Token(TOKEN_MINUS, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '*':
-                tokens.append(Token(TT_MUL, start_pos=self.position))
+                tokens.append(Token(TOKEN_MUL, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '!':
@@ -178,23 +186,23 @@ class Tokenizer:
                 self.advance()
 
             elif self.current_char == '/':
-                tokens.append(Token(TT_DIV, start_pos=self.position))
+                tokens.append(Token(TOKEN_DIV, start_pos=self.position))
                 self.advance()
                 
             elif self.current_char == '^':
-                tokens.append(Token(TT_POW, start_pos=self.position))
+                tokens.append(Token(TOKEN_POW, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '(':
-                tokens.append(Token(TT_LPAREN, start_pos=self.position))
+                tokens.append(Token(TOKEN_LPAREN, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == ')':
-                tokens.append(Token(TT_RPARENT, start_pos=self.position))
+                tokens.append(Token(TOKEN_RPARENT, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '{':
-                tokens.append(Token(TT_RCURLY, start_pos=self.position))
+                tokens.append(Token(TOKEN_LCURLY, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '=':
@@ -215,7 +223,7 @@ class Tokenizer:
                 self.advance()
                 return [], IllegalCharError(start_pos, self.position,"'" + char + "'")
 
-        tokens.append(Token(TT_EOF, start_pos=self.position))
+        tokens.append(Token(TOKEN_EOF, start_pos=self.position))
         return tokens, None
 
     #checks weather a number is float or int and returns a token back with it's type
@@ -236,9 +244,9 @@ class Tokenizer:
             self.advance()
 
         if dot_count == 0:
-            return Token(TT_INT, int(num_str),start_pos, self.position)
+            return Token(TOKEN_INT, int(num_str),start_pos, self.position)
         else:
-            return Token(TT_FLOAT, float(num_str, start_pos, self.position))
+            return Token(TOKEN_FLOAT, float(num_str, start_pos, self.position))
     
     def make_identifier(self):
         id_str = ''
@@ -248,7 +256,7 @@ class Tokenizer:
             id_str += self.current_char
             self.advance()
 
-        token_type = TT_KEYWORD if id_str in KEYWORDS else TT_IDENTIFIER  
+        token_type = TOKEN_KEYWORD if id_str in KEYWORDS else TOKEN_IDENTIFIER  
         return Token(token_type,id_str,start_pos,self.position)
 
     def make_not_equal(self):
@@ -256,7 +264,7 @@ class Tokenizer:
         self.advance()
 
         if self.current_char == '=':
-            return Token(TT_NE,start_pos=start_pos,end_pos=self.position), None
+            return Token(TOKEN_NE,start_pos=start_pos,end_pos=self.position), None
 
         return None, ExpectedCharError(start_pos,self.position, "Expected '=' after '!' ") 
     
@@ -265,17 +273,23 @@ class Tokenizer:
         self.advance()
         if self.current_char == "=":
             self.advance()
-            return Token(TT_EE,start_pos=start_pos,end_pos=self.position)
+            return Token(TOKEN_EE,start_pos=start_pos,end_pos=self.position)
 
-        return Token(TT_EQ,start_pos=start_pos,end_pos=self.position)
+        return Token(TOKEN_EQ,start_pos=start_pos,end_pos=self.position)
 
 
     # a function  that checks if '>' or '<'  are followed by and equals sign '=' to change its type
     def make_GT_LT(self):
         start_pos = self.position.copy()
-        Token_type = TT_GT if self.current_char == ">" else TT_LT
+        Token_type = TOKEN_GT if self.current_char == ">" else TOKEN_LT
         self.advance()
         
+        if self.current_char =='>' and Token_type == TOKEN_GT:
+            return Token(TOKEN_UNTIL,start_pos=start_pos,end_pos=self.position)
+
+        if self.current_char =='<' and Token_type == TOKEN_LT:
+            return Token(TOKEN_SKIP,start_pos=start_pos,end_pos=self.position)
+
         if self.current_char == '=':
             Token_type += 'E'
             self.advance()
@@ -337,6 +351,27 @@ class IfNode:
 
         self.start_pos = self.cases[0][0].start_pos
         self.end_pos = self.else_case or self.cases[-1][0].end_pos
+
+
+
+class ForNode():
+    def __init__(self, var_name, start_value, end_value, skip_value, body ) -> None:
+        self.start_value_node = start_value
+        self.end_value_node   = end_value
+        self.var_name_node    = var_name
+        self.skip_value_node  = skip_value
+        self.body_node        = body   
+
+        self.start_pos        = self.var_name_node.start_pos
+        self.end_pos          = self.body_node.end_pos
+
+class WhileNode():
+    def __init__(self,condition, body) -> None:
+        self.condition_node =  condition
+        self.body_node      = body
+
+        self.start_pos        = self.condition_node.start_pos
+        self.end_pos          = self.body_node.end_pos
 # nodes end
     
 class ParserResult:
@@ -380,7 +415,7 @@ class Parser:
 
     def parse(self):
         res= self.Expression()
-        if not res.error and self.curr_token.type != TT_EOF:
+        if not res.error and self.curr_token.type != TOKEN_EOF:
             return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos, self.curr_token.end_pos,
                 "Expected  '+', '-', '*' or '/'"
@@ -388,25 +423,25 @@ class Parser:
 
         return res
     
-# to understanf the order of this reader grammers .txt
+# to understand the order of this reader grammers in the top of the file
     def Most(self):
         res = ParserResult()
         token = self.curr_token
 
-        if token.type in (TT_FLOAT , TT_INT):
+        if token.type in (TOKEN_FLOAT , TOKEN_INT):
             self.register_advacement(res)
             return res.Sucsses(NumberNode(token))
 
-        if token.type is TT_IDENTIFIER:
+        if token.type is TOKEN_IDENTIFIER:
             self.register_advacement(res)
             return res.Sucsses(var_access_node(token))
 
-        elif token.type == TT_LPAREN:
+        elif token.type == TOKEN_LPAREN:
             self.register_advacement(res)
             expr = res.Register(self.Expression())
             if res.error: return res
 
-            if self.curr_token.type == TT_RPARENT   :
+            if self.curr_token.type == TOKEN_RPARENT   :
                 self.register_advacement(res)
                 return res.Sucsses(expr)
             else:
@@ -414,10 +449,21 @@ class Parser:
                     self.curr_token.star_pos, self.curr_token.end_pos, 
                     "Expected ')' "
                 ))
-        elif token.matches(TT_KEYWORD, 'if'):
+        elif token.matches(TOKEN_KEYWORD, 'if'):
             expression = res.Register(self.If_expression())
             if res.error: return res
             return res.Sucsses(expression)
+
+        elif token.matches(TOKEN_KEYWORD, 'while'):
+            expression = res.Register(self.While_expression())
+            if res.error: return res
+            return res.Sucsses(expression)
+
+        elif token.matches(TOKEN_KEYWORD, 'for'):
+            expression = res.Register(self.For_expression())
+            if res.error: return res
+            return res.Sucsses(expression)
+
 
         
         return res.failure(InvalidSyntaxErorr(
@@ -426,13 +472,13 @@ class Parser:
         ))
 
     def power(self):
-        return self.bin_op(self.Most, (TT_POW,), self.Factor)
+        return self.bin_op(self.Most, (TOKEN_POW,), self.Factor)
 
     def Factor(self):
         res = ParserResult()
         token = self.curr_token
 
-        if token.type in (TT_PLUS, TT_MINUS):
+        if token.type in (TOKEN_PLUS, TOKEN_MINUS):
             self.register_advacement(res)
             factor = res.Register(self.Factor())
             if res.error: return res
@@ -441,15 +487,15 @@ class Parser:
         return self.power()
 
     def Term(self):
-        return self.bin_op(self.Factor, (TT_MUL, TT_DIV))
+        return self.bin_op(self.Factor, (TOKEN_MUL, TOKEN_DIV))
     
     def arithmetic_expression(self):
-        return self.bin_op(self.Term, (TT_PLUS, TT_MINUS))
+        return self.bin_op(self.Term, (TOKEN_PLUS, TOKEN_MINUS))
 
     def Comparison_expression(self):
         res = ParserResult()
 
-        if self.curr_token.matches(TT_KEYWORD, "not"):
+        if self.curr_token.matches(TOKEN_KEYWORD, "not"):
             operation_token = self.curr_token
             self.register_advacement(res)
 
@@ -457,7 +503,7 @@ class Parser:
             if res.error :return res
             return res.Sucsses(unaryoperationNode(operation_token,node))
 
-        node = res.Register(self.bin_op(self.arithmetic_expression,(TT_EE, TT_NE, TT_LT, TT_GT, TT_GTE, TT_LTE)))
+        node = res.Register(self.bin_op(self.arithmetic_expression,(TOKEN_EE, TOKEN_NE, TOKEN_LT, TOKEN_GT, TOKEN_GTE, TOKEN_LTE)))
         
         if res.error: 
             return res.failure(InvalidSyntaxErorr(
@@ -469,10 +515,10 @@ class Parser:
 
     def Expression(self):
         res = ParserResult()
-        if self.curr_token.matches(TT_KEYWORD, "let"):
+        if self.curr_token.matches(TOKEN_KEYWORD, "let"):
             self.register_advacement(res)
 
-            if self.curr_token.type != TT_IDENTIFIER:
+            if self.curr_token.type != TOKEN_IDENTIFIER:
                 return res.failure(InvalidSyntaxErorr(
                     self.curr_token.start_pos, self.curr_token.end_pos,
                     'Expected identifier'
@@ -481,7 +527,7 @@ class Parser:
             variable_name =  self.curr_token
             self.register_advacement(res)
 
-            if self.curr_token.type != TT_EQ:
+            if self.curr_token.type != TOKEN_EQ:
                 res.failure(InvalidSyntaxErorr(
                     self.curr_token.start_pos, self.curr_token.end_pos,
                     "Expected '=' "
@@ -491,7 +537,7 @@ class Parser:
             if res.error:return res
             return res.Sucsses(var_assign_node(variable_name, expression))
 
-        node =  res.Register(self.bin_op(self.Comparison_expression, ((TT_KEYWORD,"and"),  (TT_KEYWORD, "or"))))
+        node =  res.Register(self.bin_op(self.Comparison_expression, ((TOKEN_KEYWORD,"and"),  (TOKEN_KEYWORD, "or"))))
 
         if res.error: 
             return res.failure(InvalidSyntaxErorr(
@@ -525,10 +571,10 @@ class Parser:
 
         self.if_elif_maker(res, 'if', cases)
 
-        while self.curr_token.matches(TT_KEYWORD, "elif"):
+        while self.curr_token.matches(TOKEN_KEYWORD, "elif"):
             self.if_elif_maker(res, 'elif',cases )
 
-        if self.curr_token.matches(TT_KEYWORD, 'else'):
+        if self.curr_token.matches(TOKEN_KEYWORD, 'else'):
             self.register_advacement(res)
 
             else_case = res.Register(self.Expression())
@@ -538,17 +584,17 @@ class Parser:
 
     def if_elif_maker(self, res, ident, cases):
 
-        if ident == 'if' and not self.curr_token.matches(TT_KEYWORD, ident):
-            return res.failure(InvalidSyntaxErorr(self.curr_token.start_pos,self.curr_token.end_pos
-            ,"Expected 'if' " 
-            ))
+        # if ident == 'if' and not self.curr_token.matches(TOKEN_KEYWORD, ident):
+        #     return res.failure(InvalidSyntaxErorr(self.curr_token.start_pos,self.curr_token.end_pos
+        #     ,"Expected 'if' " 
+        #     ))
         
         self.register_advacement(res)
 
         condition  = res.Register(self.Expression())
         if res.error : return res
 
-        if not self.curr_token.type == TT_RCURLY:
+        if not self.curr_token.type == TOKEN_LCURLY:
             return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos, self.curr_token.end_pos,
                 "Expected '{'"
@@ -564,6 +610,76 @@ class Parser:
         res.Register_advancement()
         self.advance()
 
+    def For_expression(self):
+        res = ParserResult()
+        self.register_advacement(res)
+
+        if self.curr_token.type != TOKEN_IDENTIFIER:
+            return res.failure(InvalidSyntaxErorr(
+                self.curr_token.start_pos , self.curr_token.end_pos,
+                "Expected Identifier after For loop declartion"
+            ))
+
+        pointer_name = self.curr_token
+        self.register_advacement(res)
+        
+        if self.curr_token.type != TOKEN_EQ:
+            return res.failure(InvalidSyntaxErorr(
+                self.curr_token.start_pos , self.curr_token.end_pos,
+                "Expected '=' after identifier"
+            ))
+
+        self.register_advacement(res)
+        starting_pointer = res.Register(self.Expression())      
+        if res.error: return res
+
+        if self.curr_token.type != TOKEN_UNTIL:
+            return res.failure(InvalidSyntaxErorr(
+                self.curr_token.start_pos , self.curr_token.end_pos,
+                "Expected '>>' "
+            ))
+
+        self.register_advacement(res) 
+
+        end_poniter = res.Register(self.Expression())
+        if res.error: return Error
+        skip_value = None
+        if self.curr_token.type == TOKEN_SKIP:
+            self.register_advacement(res)
+            skip_value = res.Register(self.Expression())
+
+            if res.error :return res
+        
+
+        if not self.curr_token.type == TOKEN_LCURLY:
+           return res.failure(InvalidSyntaxErorr(
+                self.curr_token.start_pos , self.curr_token.end_pos,
+                "Expected '{' "
+            ))           
+        
+        self.register_advacement(res)
+        body_content = res.Register(self.Expression())
+
+        return res.Sucsses(ForNode(pointer_name, starting_pointer,end_poniter,skip_value, body_content))
+        
+    def While_expression(self):
+        res = ParserResult()
+
+        self.register_advacement(res)
+        condition = res.Register(self.Expression())
+        if res.error: return res
+
+        if self.curr_token.type != TOKEN_LCURLY:
+               return res.failure(InvalidSyntaxErorr(
+                self.curr_token.start_pos , self.curr_token.end_pos,
+                "Expected '{' "
+
+            ))  
+        self.register_advacement(res)
+
+        body_content = res.Register(self.Expression())
+
+        return res.Sucsses(WhileNode(condition,body_content))
 class RuntimeResult:
     def __init__(self):
         self.value = None
@@ -739,43 +855,43 @@ class Interpreter:
         
         result = None
         error = None
-        if node.operation_token.type == TT_PLUS:
+        if node.operation_token.type == TOKEN_PLUS:
             result, error =  left.addition(right)
         
-        elif node.operation_token.type == TT_MINUS:
+        elif node.operation_token.type == TOKEN_MINUS:
             result, error = left.subtract(right)
 
-        elif node.operation_token.type == TT_MUL:
+        elif node.operation_token.type == TOKEN_MUL:
             result, error =  left.multiply(right)
             
-        elif node.operation_token.type == TT_DIV:
+        elif node.operation_token.type == TOKEN_DIV:
             result, error =  left.divide(right)
 
-        elif node.operation_token.type == TT_POW:
+        elif node.operation_token.type == TOKEN_POW:
             result, error =  left.powered(right)
 
-        elif node.operation_token.type == TT_EE:
+        elif node.operation_token.type == TOKEN_EE:
             result, error =  left.get_EE(right)
 
-        elif node.operation_token.type == TT_NE:
+        elif node.operation_token.type == TOKEN_NE:
             result, error =  left.get_NE(right)
 
-        elif node.operation_token.type == TT_GT:
+        elif node.operation_token.type == TOKEN_GT:
             result, error =  left.get_GT(right)
 
-        elif node.operation_token.type == TT_LT:
+        elif node.operation_token.type == TOKEN_LT:
             result, error =  left.get_LT(right)
 
-        elif node.operation_token.type == TT_GTE:
+        elif node.operation_token.type == TOKEN_GTE:
             result, error =  left.get_GTE(right)
         
-        elif node.operation_token.type == TT_LTE:
+        elif node.operation_token.type == TOKEN_LTE:
             result, error =  left.get_LTE(right)
         
-        elif node.operation_token.matches(TT_KEYWORD,"and"):
+        elif node.operation_token.matches(TOKEN_KEYWORD,"and"):
             result, error =  left.and_with(right)
         
-        elif node.operation_token.matches(TT_KEYWORD, "or"):
+        elif node.operation_token.matches(TOKEN_KEYWORD, "or"):
             result, error =  left.or_with(right)
 
     
@@ -790,10 +906,10 @@ class Interpreter:
         if res.error: return res 
 
         error = None
-        if node.operation_token.type == TT_MINUS:
+        if node.operation_token.type == TOKEN_MINUS:
             number, error = number.multiply(Number(-1))
 
-        elif node.operation_token.matches(TT_KEYWORD, 'not'):
+        elif node.operation_token.matches(TOKEN_KEYWORD, 'not'):
             number, error = number._not()
 
 
@@ -825,7 +941,50 @@ class Interpreter:
             return res.success(else_value)
         
         return res.success(None)
+    
+    def visit_ForNode(self,node, context):
+        res = RuntimeResult()
+        start_pointer = res.register(self.visit(node.start_value_node,context))
+        if res.error:return res
+        
+        end_pointer = res.register(self.visit(node.end_value_node, context))
+        if res.error:return res
+        
+        skip_value = 1
+        if node.skip_value_node:
+            skip_value = res.register(self.visit(node.skip_value_node,context))
+            skip_value = skip_value.value
+            if res.error:return res
 
+        pointer = start_pointer.value
+
+        def evaluate_condition():
+             return pointer < end_pointer.value if skip_value >= 0 else pointer > end_pointer.value
+             
+        while evaluate_condition():
+            context.symbol_table.set(node.var_name_node.value,Number(pointer))
+            pointer += 1
+
+            res.register(self.visit(node.body_node,context))
+            if res.error: return res
+
+        return res.success(None) 
+
+
+    
+    def visit_WhileNode(self, node, context):
+        res = RuntimeResult()
+
+        while True:
+            condition = res.register(self.visit(node.condition_node, context))
+            if res.error: return res
+
+            if not condition.is_true(): break
+
+            res.register(self.visit(node.body_node,context))
+            if res.error: return res
+
+        return res.success(None)
 
 
 
