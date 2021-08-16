@@ -2,6 +2,7 @@
 
 """
 
+from abc import abstractmethod
 import string
 
 DIGITS        = '0123456789'
@@ -26,6 +27,7 @@ TOKEN_LTE        = 'LTE' # less then or equals '<=' operator token
 TOKEN_KEYWORD    = 'KEYWORD' # keyword that are used by the language 
 TOKEN_IDENTIFIER = 'IDENTIFIER' # names that are given by the user to name variables, fucntions ...
 TOKEN_EOF        = 'EOF'
+TOKEN_COMMA      = ' COMMA'
 TOKEN_LCURLY      = 'LCURLY'
 TOKEN_RCURLY      = 'RCURLY'
 TOKEN_UNTIL       = 'UNTIL'
@@ -39,7 +41,8 @@ KEYWORDS = [
     'elif',
     'else',
     'while',
-    'for'
+    'for', 
+    'func'
 ]
 
 # this class is made for other claases to inherit from 
@@ -205,6 +208,10 @@ class Tokenizer:
                 tokens.append(Token(TOKEN_LCURLY, start_pos=self.position))
                 self.advance()
 
+            elif self.current_char == ',':
+                tokens.append(Token(TOKEN_COMMA, start_pos=self.position))
+                self.advance()
+
             elif self.current_char == '=':
                 tokens.append(self.make_equal())
                 
@@ -330,9 +337,10 @@ class BinOpertaionNode:
 
 
 class var_assign_node:
-    def __init__(self, var_name_token, value_node) -> None:
+    def __init__(self, var_name_token, value_node,force =False) -> None:
         self.var_name_token = var_name_token
         self.value_node = value_node
+        self.force = force
 
         self.start_pos = var_name_token.start_pos
         self.end_pos = var_name_token.end_pos       
@@ -355,7 +363,7 @@ class IfNode:
 
 
 class ForNode():
-    def __init__(self, var_name, start_value, end_value, skip_value, body ) -> None:
+    def __init__(self, var_name, start_value, end_value, skip_value, body) -> None:
         self.start_value_node = start_value
         self.end_value_node   = end_value
         self.var_name_node    = var_name
@@ -372,6 +380,37 @@ class WhileNode():
 
         self.start_pos        = self.condition_node.start_pos
         self.end_pos          = self.body_node.end_pos
+
+
+class functionDefNode():
+    def __init__(self, var_name_token, arg_name_tokens, body_node) -> None:
+        self.arg_name_tokens = arg_name_tokens
+        self.body_node =  body_node
+        self.var_name_token = var_name_token
+
+
+        if self.var_name_token:
+            self.start_pos = var_name_token.start_pos
+        elif len(self.arg_name_tokens) > 0:
+            self.start_pos = self.arg_name_tokens[0].start_pos
+        else:
+            self.start_pos = self.body_node.start_pos
+        
+        self.end_pos =  self.body_node.end_pos
+
+
+class CallNode:
+  def __init__(self, node_to_call, arg_nodes):
+    self.node_to_call = node_to_call
+    self.arg_nodes = arg_nodes
+
+    self.start_pos = self.node_to_call.start_pos
+
+    if len(self.arg_nodes) > 0:
+      self.end_pos = self.arg_nodes[len(self.arg_nodes) - 1].end_pos
+    else:
+      self.end_pos = self.node_to_call.end_pos
+
 # nodes end
     
 class ParserResult:
@@ -413,7 +452,7 @@ class Parser:
 
         return self.curr_token
 
-    def parse(self):
+    def parse(self, ):
         res= self.Expression()
         if not res.error and self.curr_token.type != TOKEN_EOF:
             return res.failure(InvalidSyntaxErorr(
@@ -422,7 +461,41 @@ class Parser:
             ))
 
         return res
-    
+
+    def call(self):
+        res = ParserResult()
+        most = res.Register(self.Most())
+        if res.error:return res
+
+        if self.curr_token.type == TOKEN_LPAREN:
+            self.register_advacement(res)
+            arg_nodes = []
+
+            if self.curr_token.type == TOKEN_RPARENT:
+                self.register_advacement(res)
+            else:
+                arg_nodes.append(res.Register(self.Expression()))
+                if res.error:
+                    return res.failure(InvalidSyntaxErorr(
+                        self.curr_token.start_pos, self.curr_token.end_pos,
+                        "Expected ')' , keyword, identifier "
+                    ))
+                
+                while self.curr_token.type == TOKEN_COMMA:
+                    self.register_advacement(res)
+
+                    arg_nodes.append(res.Register(self.Expression()))
+                    if res.error: return res
+
+                if self.curr_token.type != TOKEN_RPARENT:
+                    return res.failure(InvalidSyntaxErorr(
+                        self.curr_token.start_pos, self.curr_token.end_pos,
+                        "Expected ',' or ')'"
+                    ))
+
+                self.register_advacement(res)
+            return res.Sucsses(CallNode(most,arg_nodes))
+        return res.Sucsses(most)
 # to understand the order of this reader grammers in the top of the file
     def Most(self):
         res = ParserResult()
@@ -432,8 +505,16 @@ class Parser:
             self.register_advacement(res)
             return res.Sucsses(NumberNode(token))
 
-        if token.type is TOKEN_IDENTIFIER:
+        elif token.type is TOKEN_IDENTIFIER:
             self.register_advacement(res)
+
+            if self.curr_token.type == TOKEN_EQ:
+                self.register_advacement(res)
+                new_value = res.Register(self.Expression())
+                if res.error:return res
+
+                return res.Sucsses(var_assign_node(token,new_value))
+
             return res.Sucsses(var_access_node(token))
 
         elif token.type == TOKEN_LPAREN:
@@ -464,6 +545,10 @@ class Parser:
             if res.error: return res
             return res.Sucsses(expression)
 
+        elif token.matches(TOKEN_KEYWORD, 'func'):
+            expression = res.Register(self.Func_expression())
+            if res.error: return res
+            return res.Sucsses(expression)
 
         
         return res.failure(InvalidSyntaxErorr(
@@ -472,7 +557,7 @@ class Parser:
         ))
 
     def power(self):
-        return self.bin_op(self.Most, (TOKEN_POW,), self.Factor)
+        return self.bin_op(self.call, (TOKEN_POW,), self.Factor)
 
     def Factor(self):
         res = ParserResult()
@@ -515,6 +600,7 @@ class Parser:
 
     def Expression(self):
         res = ParserResult()
+
         if self.curr_token.matches(TOKEN_KEYWORD, "let"):
             self.register_advacement(res)
 
@@ -528,14 +614,15 @@ class Parser:
             self.register_advacement(res)
 
             if self.curr_token.type != TOKEN_EQ:
-                res.failure(InvalidSyntaxErorr(
+                return res.failure(InvalidSyntaxErorr(
                     self.curr_token.start_pos, self.curr_token.end_pos,
                     "Expected '=' "
                 ))
             self.register_advacement(res)
             expression = res.Register(self.Expression())
             if res.error:return res
-            return res.Sucsses(var_assign_node(variable_name, expression))
+            return res.Sucsses(var_assign_node(variable_name, expression,True))
+
 
         node =  res.Register(self.bin_op(self.Comparison_expression, ((TOKEN_KEYWORD,"and"),  (TOKEN_KEYWORD, "or"))))
 
@@ -661,7 +748,7 @@ class Parser:
         body_content = res.Register(self.Expression())
 
         return res.Sucsses(ForNode(pointer_name, starting_pointer,end_poniter,skip_value, body_content))
-        
+     
     def While_expression(self):
         res = ParserResult()
 
@@ -680,6 +767,74 @@ class Parser:
         body_content = res.Register(self.Expression())
 
         return res.Sucsses(WhileNode(condition,body_content))
+
+    def Func_expression(self):
+        res = ParserResult()
+
+        self.register_advacement(res)
+
+        if self.curr_token.type == TOKEN_IDENTIFIER:
+            func_name_token = self.curr_token;
+            self.register_advacement(res)
+
+            if self.curr_token.type != TOKEN_LPAREN:
+                return res.failure(InvalidSyntaxErorr(
+                    self.curr_token.start_pos, self.curr_token.end_pos,
+                    "Expected '(' after function declaration"
+                ))
+
+        else:
+            func_name_token = None
+            if self.curr_token.type != TOKEN_LPAREN:
+                return res.failure(InvalidSyntaxErorr(
+                    self.curr_token.start_pos, self.curr_token.end_pos,
+                    "Expected identifier after function declaration"
+                ))
+        
+        self.register_advacement(res)
+
+        arg_name_tokens = []
+
+        if self.curr_token.type == TOKEN_IDENTIFIER:
+            arg_name_tokens.append(self.curr_token)
+            self.register_advacement(res)
+
+            while self.curr_token.type == TOKEN_COMMA:
+                self.register_advacement(res)
+                if self.curr_token.type != TOKEN_IDENTIFIER:
+                    return res.failure(InvalidSyntaxErorr(
+                        self.curr_token.start_pos, self.curr_token.end_pos,
+                        "Expected identifier"
+                    ))
+                arg_name_tokens.append(self.curr_token)
+                self.register_advacement(res)
+
+            if self.curr_token.type != TOKEN_RPARENT:
+                    return res.failure(InvalidSyntaxErorr(
+                    self.curr_token.start_pos, self.curr_token.end_pos,
+                    "Expected ')' or ','  after function declaration"
+                ))
+
+        else:
+            if self.curr_token.type != TOKEN_RPARENT:
+                return res.failure(InvalidSyntaxErorr(
+                        self.curr_token.start_pos, self.curr_token.end_pos,
+                        "Expected ')' or  identifier after function declaration"
+                    ))
+        self.register_advacement(res)
+            
+        if self.curr_token.type != TOKEN_UNTIL:
+            return res.failure(InvalidSyntaxErorr(
+                    self.curr_token.start_pos, self.curr_token.end_pos,
+                    "Expected '>>' "
+                ))
+        self.register_advacement(res)
+
+        body = res.Register(self.Expression())
+        if res.error:return res
+
+        return res.Sucsses(functionDefNode(func_name_token, arg_name_tokens, body))
+    
 class RuntimeResult:
     def __init__(self):
         self.value = None
@@ -697,95 +852,229 @@ class RuntimeResult:
         self.error = error
         return self
 
-class Number:
-    def __init__(self, value) -> None:
-        self.value = value
-        self.set_position()
-        self.set_context()
+class Value():
+	def __init__(self):
+		self.set_position()
+		self.set_context()
 
-    def set_position(self, start_pos = None , end_pos = None):
-        self.start_pos = start_pos
-        self.end_pos = end_pos
+	def set_position(self, start_pos=None, end_pos=None):
+		self.start_pos = start_pos
+		self.end_pos = end_pos
+		return self
 
-        return self 
-    
-    def set_context(self,context=None):
-        self.context = context
-        return self
+	def set_context(self, context=None):
+		self.context = context
+		return self
 
-    def addition(self,other_num):
-        if isinstance(other_num, Number):
-            return Number(self.value + other_num.value).set_context(self.context), None
+	def addition(self, other):
+		return None, self.illegal_operation(other)
 
-    def subtract(self,other_num):
-        if isinstance(other_num, Number):
-            return Number(self.value - other_num.value).set_context(self.context) , None
-            
-    def multiply(self,other_num):
-        if isinstance(other_num, Number):
-            return Number(self.value * other_num.value).set_context(self.context), None
+	def subtract(self, other):
+		return None, self.illegal_operation(other)
 
-    def divide(self,other_num):
-        if isinstance(other_num, Number):
-            print(other_num.value)
-            if other_num.value == 0:
-                return None , RunTimeError(
-                    other_num.start_pos, other_num.end_pos,
-                    "Division by zero",
-                    self.context
-                )
-            return Number(self.value / other_num.value).set_context(self.context), None
+	def multiply(self, other):
+		return None, self.illegal_operation(other)
 
-    def powered(self,other_num):
-        if isinstance(other_num, Number):
-            return Number(self.value ** other_num.value).set_context(self.context), None    
+	def divide(self, other):
+		return None, self.illegal_operation(other)
 
-    def get_EE(self,other):
-        if isinstance(other, Number):
-            return Number(int(self.value == other.value)).set_context(self.context), None 
+	def powered(self, other):
+		return None, self.illegal_operation(other)
 
-    def get_NE(self,other):
-        if isinstance(other, Number):
-            return Number(int(self.value != other.value)).set_context(self.context), None 
+	def get_EQ(self, other):
+		return None, self.illegal_operation(other)
 
-    def get_GT(self,other):
-        if isinstance(other, Number):
-            return Number(int(self.value > other.value)).set_context(self.context), None 
+	def get_NE(self, other):
+		return None, self.illegal_operation(other)
 
-    def get_LT(self,other):
-        if isinstance(other, Number):
-            return Number(int(self.value < other.value)).set_context(self.context), None 
+	def get_LT(self, other):
+		return None, self.illegal_operation(other)
 
-    def get_LTE(self,other):
-        if isinstance(other, Number):
-            return Number(int(self.value <= other.value)).set_context(self.context), None 
+	def get_GT(self, other):
+		return None, self.illegal_operation(other)
 
-    def get_GTE(self,other):
-        if isinstance(other, Number):
-            return Number(int(self.value >= other.value)).set_context(self.context), None 
+	def get_LTE(self, other):
+		return None, self.illegal_operation(other)
 
-    def and_with(self,other):
-        if isinstance(other, Number):
-           return Number(int(self.value and other.value)).set_context(self.context), None 
+	def get_GTE(self, other):
+		return None, self.illegal_operation(other)
 
-    def or_with(self,other):
-        if isinstance(other, Number):
-            return Number(int(self.value or other.value)).set_context(self.context), None 
+	def and_with(self, other):
+		return None, self.illegal_operation(other)
 
-    def _not(self):
-        return Number(1 if self.value == 0 else 0).set_context(self.context), None 
+	def or_with(self, other):
+		return None, self.illegal_operation(other)
 
-    def is_true(self):
-        return not (self.value == 0)
+	def _not(self):
+		return None, self.illegal_operation()
+
+	def execute(self, args):
+		return RuntimeResult().failure(self.illegal_operation())
+
+	def copy(self):
+		raise Exception('No copy method defined')
+
+	def is_true(self):
+		return False
+
+	def illegal_operation(self, other=None):
+		if not other: other = self
+		return RuntimeError(
+			self.start_pos, other.end_pos,
+			'Illegal operation',
+			self.context
+		)
+
+class Number(Value):
+	def __init__(self, value):
+		super().__init__()
+		self.value = value
+
+	def addition(self, other):
+		if isinstance(other, Number):
+			return Number(self.value + other.value).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def subtract(self, other):
+		if isinstance(other, Number):
+			return Number(self.value - other.value).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def multiply(self, other):
+		if isinstance(other, Number):
+			return Number(self.value * other.value).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def divide(self, other):
+		if isinstance(other, Number):
+			if other.value == 0:
+				return None, RuntimeError(
+					other.start_pos, other.end_pos,
+					'Division by zero',
+					self.context
+				)
+
+			return Number(self.value / other.value).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def powered(self, other):
+		if isinstance(other, Number):
+			return Number(self.value ** other.value).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def get_EQ(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value == other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def get_NE(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value != other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def get_LT(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value < other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def get_GT(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value > other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def get_LTE(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value <= other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def get_GTE(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value >= other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def and_with(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value and other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def or_with(self, other):
+		if isinstance(other, Number):
+			return Number(int(self.value or other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
+	def _not(self):
+		return Number(1 if self.value == 0 else 0).set_context(self.context), None
+
+	def copy(self):
+		copy = Number(self.value)
+		copy.set_position(self.start_pos, self.end_pos)
+		copy.set_context(self.context)
+		return copy
+
+	def is_true(self):
+		return self.value != 0
+	
+	def __repr__(self):
+		return str(self.value)
+
+class Function(Value):
+    def __init__(self, name, body_node, arg_names):
+        super().__init__()
+        self.name = name or "<anonymous>"
+        self.body_node = body_node
+        self.arg_names = arg_names
+
+    def execute(self, args):
+        res = RuntimeResult()
+        interpreter = Interpreter()
+        new_context = Context(self.name, self.context, self.start_pos)
+        new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
+
+        if len(args) > len(self.arg_names):
+            return res.failure(RuntimeError(
+                self.start_pos, self.start_pos,
+                f"{len(args) - len(self.arg_names)} too many args passed into '{self.name}'",
+                self.context
+            ))
+
+        if len(args) < len(self.arg_names):
+            return res.failure(RuntimeError(
+                self.start_pos, self.start_pos,
+                f"{len(self.arg_names) - len(args)} too few args passed into '{self.name}'",
+                self.context
+            ))
+
+        for i in range(len(args)):
+            arg_name = self.arg_names[i]
+            arg_value = args[i]
+            arg_value.set_context(new_context)
+            new_context.symbol_table.set(arg_name, arg_value)
+
+        value = res.register(interpreter.visit(self.body_node, new_context))
+        if res.error: return res
+        return res.success(value)
 
     def copy(self):
-        copy = Number(self.value)
-        copy.set_position(self.start_pos,self.end_pos)
+        copy = Function(self.name, self.body_node, self.arg_names)
         copy.set_context(self.context)
+        copy.set_position(self.start_pos, self.start_pos)
         return copy
 
-    def __repr__(self) -> str:
-        return f'{self.value}'
+    def __repr__(self):
+        return f"<function {self.name}>"
 
 class Context:
     def __init__(self,display_name, parent=None, parent_entry_pos=None) -> None:
@@ -795,9 +1084,9 @@ class Context:
         self.symbol_table = None
 
 class SymbolTable:
-    def __init__(self) -> None:
+    def __init__(self,parent=None) -> None:
         self.symbols = {}
-        self.parent = None
+        self.parent = parent
 
     def get(self, name):
         value = self.symbols.get(name, None)
@@ -811,13 +1100,16 @@ class SymbolTable:
     def remove(self, name):
         del self.symbols[name]
 
+    def is_in(self,name):
+        return True if name  in self.symbols.keys() else False
+
 # this class takes the nodes after they were order with the parser
 # and then executes them in order  
 class Interpreter:
     def visit(self,node, context):
         method_name = f"visit_{type(node).__name__}"
         method = getattr(self,method_name,self.no_visit_method)
-        return method(node,context)
+        return method(node,context) 
     
     def no_visit_method(self,node, context):
         raise Exception(f"No visit_{type(node).__name__} method defined")
@@ -842,9 +1134,17 @@ class Interpreter:
         value = res.register(self.visit(node.value_node,context))
 
         if res.error:return res
-
-        context.symbol_table.set(var_name, value)
-        return res.success(value)
+        if global_symbol_table.is_in(var_name)  or node.force:
+            global_symbol_table.set(var_name,value)
+            
+        
+        else:
+            return res.failure(InvalidSyntaxErorr(
+                node.start_pos, node.end_pos,
+                f"Variable '{var_name}' refernced before assignment"
+            ))
+            
+        return res.success(value) 
 
     def visit_BinOpertaionNode(self, node,context):
         res = RuntimeResult()
@@ -912,7 +1212,6 @@ class Interpreter:
         elif node.operation_token.matches(TOKEN_KEYWORD, 'not'):
             number, error = number._not()
 
-
         if error:
             return res.failure(error)
         else:
@@ -964,7 +1263,6 @@ class Interpreter:
         while evaluate_condition():
             context.symbol_table.set(node.var_name_node.value,Number(pointer))
             pointer += 1
-
             res.register(self.visit(node.body_node,context))
             if res.error: return res
 
@@ -986,6 +1284,33 @@ class Interpreter:
 
         return res.success(None)
 
+    def visit_functionDefNode(self,node, context):
+        res = RuntimeResult()
+        func_name = node.var_name_token.value if node.var_name_token else None
+        body_node = node.body_node
+        arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
+        func_value = Function(func_name, body_node, arg_names).set_context(context).set_position(node.start_pos, node.end_pos)
+
+        if node.var_name_token:
+            context.symbol_table.set(func_name, func_value)
+
+        return res.success(func_value)
+
+    def visit_CallNode(self, node, context):
+        res = RuntimeResult()
+        args = []
+
+        value_to_call = res.register(self.visit(node.node_to_call, context))
+        if res.error: return res
+        value_to_call = value_to_call.copy().set_position(node.start_pos, node.start_pos)
+
+        for arg_node in node.arg_nodes:
+            args.append(res.register(self.visit(arg_node, context)))
+            if res.error: return res
+
+        return_value = res.register(value_to_call.execute(args))
+        if res.error: return res
+        return res.success(return_value)
 
 
 global_symbol_table = SymbolTable()
