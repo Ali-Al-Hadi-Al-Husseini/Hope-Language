@@ -1,8 +1,6 @@
 """ HOPE LANGUAGE GRAMMERS
 
 """
-
-from abc import abstractmethod
 import string
 
 DIGITS        = '0123456789'
