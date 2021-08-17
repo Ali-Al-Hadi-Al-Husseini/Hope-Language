@@ -6,6 +6,7 @@ import string
 DIGITS        = '0123456789'
 LETTERS       = string.ascii_letters # t
 LETTER_DIGITS = LETTERS + DIGITS
+TOKEN_STRING     = 'STRING'
 TOKEN_INT        = 'TOKEN_INT'
 TOKEN_FLOAT      = 'FLOAT'
 TOKEN_PLUS       = 'PLUS' 
@@ -28,8 +29,13 @@ TOKEN_EOF        = 'EOF'
 TOKEN_COMMA      = ' COMMA'
 TOKEN_LCURLY      = 'LCURLY'
 TOKEN_RCURLY      = 'RCURLY'
+TOKEN_LSQUARE     = 'LSQUARE'
+TOKEN_RSQUARE     = 'RSQUARE'
 TOKEN_UNTIL       = 'UNTIL'
 TOKEN_SKIP        = 'SKIP'
+TOKEN_QUOTES      = '"'
+TOKEN_ANDSYMBOL   = "ANDSYMBOL"
+TOKEN_ORSYMBOL    = "ORSYMBOL"
 KEYWORDS = [ 
     'let',
     'and',
@@ -168,6 +174,8 @@ class Tokenizer:
             
             elif self.current_char in LETTERS:
                 tokens.append(self.make_identifier())
+            elif self.current_char in ('"', "'"):
+                tokens.append(self.make_str())
 
             elif self.current_char == '+':
                 tokens.append(Token(TOKEN_PLUS, start_pos=self.position))
@@ -200,6 +208,13 @@ class Tokenizer:
 
             elif self.current_char == ')':
                 tokens.append(Token(TOKEN_RPARENT, start_pos=self.position))
+                self.advance()
+            elif self.current_char == '[':
+                tokens.append(Token(TOKEN_LSQUARE,start_pos=self.position))
+                self.advance()
+
+            elif self.current_char == ']':
+                tokens.append(Token(TOKEN_RSQUARE, start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '{':
@@ -301,7 +316,43 @@ class Tokenizer:
 
         return Token(Token_type,start_pos=start_pos,end_pos=self.position)
 
+    def make_str(self):
+        skip = False
+        start_pos = self.position.copy()
+        curr_quotes = self.current_char
+        new_str    = ''
+        skip_chars = {
+                        'n':'\n',
+                        't':'\t'
+                    }
+        self.advance()
+
+        while (self.current_char != curr_quotes or skip) and self.current_char != None:
+            if skip:
+                new_str += skip_chars.get(self.current_char, self.current_char)
+                skip = False
+            else:
+                if self.current_char == '\\':
+                    skip = True
+                else:
+                    new_str += self.current_char
+            self.advance()
+
+
+        self.advance()
+        return Token(TOKEN_STRING, new_str, start_pos)
+
+
+
 # nodes
+class StringNode:
+    def __init__(self,token : Token) -> None:
+        self.token = token
+        self.start_pos = token.start_pos
+        self.end_pos = token.end_pos
+
+    def __repr__(self) -> str:
+        return f'{self.token}'
 
 class NumberNode:
     def __init__(self,token : Token) -> None:
@@ -312,6 +363,12 @@ class NumberNode:
     def __repr__(self) -> str:
         return f'{self.token}'
 
+class ListNode:
+    def __init__(self,elements_nodes,start_pos,end_pos):
+        self.elements_nodes = elements_nodes
+        self.start_pos = start_pos
+        self.end_pos  = end_pos
+        
 class unaryoperationNode:
     def __init__(self, operator_token , node) -> None:
         self.operation_token = operator_token
@@ -405,7 +462,7 @@ class CallNode:
     self.start_pos = self.node_to_call.start_pos
 
     if len(self.arg_nodes) > 0:
-      self.end_pos = self.arg_nodes[len(self.arg_nodes) - 1].end_pos
+      self.end_pos = self.arg_nodes[-1].end_pos
     else:
       self.end_pos = self.node_to_call.end_pos
 
@@ -476,7 +533,7 @@ class Parser:
                 if res.error:
                     return res.failure(InvalidSyntaxErorr(
                         self.curr_token.start_pos, self.curr_token.end_pos,
-                        "Expected ')' , keyword, identifier "
+                        "Expected ')' , keyword, identifier, or values "
                     ))
                 
                 while self.curr_token.type == TOKEN_COMMA:
@@ -503,6 +560,10 @@ class Parser:
             self.register_advacement(res)
             return res.Sucsses(NumberNode(token))
 
+        elif token.type == TOKEN_STRING:
+            self.register_advacement(res)
+            return res.Sucsses(StringNode(token))
+
         elif token.type is TOKEN_IDENTIFIER:
             self.register_advacement(res)
 
@@ -528,6 +589,12 @@ class Parser:
                     self.curr_token.star_pos, self.curr_token.end_pos, 
                     "Expected ')' "
                 ))
+
+        elif token.type == TOKEN_LSQUARE:
+            expression = res.Register(self.list_expression())
+            if res.error:return Error
+            return res.Sucsses(expression)
+
         elif token.matches(TOKEN_KEYWORD, 'if'):
             expression = res.Register(self.If_expression())
             if res.error: return res
@@ -551,7 +618,7 @@ class Parser:
         
         return res.failure(InvalidSyntaxErorr(
             token.start_pos, token.end_pos,
-            "Expected int, float, identifier, '+', '-' or '(' "
+            "Expected int, float, identifier, '+', '-' , '('  or '[' "
         ))
 
     def power(self):
@@ -591,7 +658,7 @@ class Parser:
         if res.error: 
             return res.failure(InvalidSyntaxErorr(
             self.curr_token.start_pos, self.curr_token.end_pos,
-            "Expected int, float, identifier, '+', '-' , '(' or 'not' "
+            "Expected int, float, identifier, '+', '-' , '(' , '[' or 'not' "
         ))
 
         return res.Sucsses(node)
@@ -772,7 +839,7 @@ class Parser:
         self.register_advacement(res)
 
         if self.curr_token.type == TOKEN_IDENTIFIER:
-            func_name_token = self.curr_token;
+            func_name_token = self.curr_token
             self.register_advacement(res)
 
             if self.curr_token.type != TOKEN_LPAREN:
@@ -833,6 +900,39 @@ class Parser:
 
         return res.Sucsses(functionDefNode(func_name_token, arg_name_tokens, body))
     
+    def list_expression(self):
+        res = ParserResult()
+        elements_nodes = []
+        start_pos = self.curr_token.start_pos.copy()
+
+        self.register_advacement(res)
+
+        if self.curr_token.type == TOKEN_RSQUARE:
+            self.register_advacement(res) 
+        else:
+            elements_nodes.append(res.Register(self.Expression()))
+            if res.error:
+                return res.failure(InvalidSyntaxErorr(
+                    self.curr_token.start_pos, self.curr_token.end_pos,
+                    "Expected ']' , keyword, identifier  or values"
+                ))
+            
+            while self.curr_token.type == TOKEN_COMMA:
+                self.register_advacement(res)
+
+                elements_nodes.append(res.Register(self.Expression()))
+                if res.error: return res
+
+            if self.curr_token.type != TOKEN_RSQUARE:
+                return res.failure(InvalidSyntaxErorr(
+                    self.curr_token.start_pos, self.curr_token.end_pos,
+                    "Expected ',' or ']'"
+                ))
+
+            self.register_advacement(res)
+        
+        return res.Sucsses(ListNode(elements_nodes, start_pos, self.curr_token.end_pos.copy()))
+
 class RuntimeResult:
     def __init__(self):
         self.value = None
@@ -923,110 +1023,233 @@ class Value():
 			self.context
 		)
 
+class String(Value):
+    def __init__(self,value):
+        super().__init__()
+        self.value = value
+
+    def multiply(self, other):
+        if isinstance(other,Number):
+            return String(self.value * other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self,other)
+
+    def addition(self, other):
+        if isinstance(other,String):
+            return String(self.value + other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self,other)
+
+    def change_to(self,char, by_this):
+        if isinstance(char,String) and isinstance(by_this,String):
+            for idx in range(len(self.value)):
+                if self.value[idx] == char.value:
+                    self.value[idx] = by_this
+            return self.value, None
+
+        else:
+            return None, Value.illegal_operation(char,by_this) 
+
+    def length(self):
+        return Number(len(self.value))
+
+    def copy(self):
+        copy = String(self.value)
+        copy.set_context(self.context)
+        copy.set_position(self.start_pos, self.end_pos)
+        return copy
+    def __repr__(self):
+        return f'"{self.value}"'
+
+class List(Value):
+    def __init__(self,elements) -> None:
+        super().__init__()
+        self.elements = elements
+
+    def addition(self, other):
+        if isinstance(other,List):
+            new_list = self.elements[:]
+            new_list.extend(other.elements)
+            return List(new_list), None
+        else:
+            new_list = self.elements[:]
+            new_list.append(other.value)
+            return List(new_list), None
+
+    def multiply(self, other):
+        if isinstance(other, Number):
+            new_list = self.elements[:]
+            for i in range(other.value - 1):
+                new_listt = self.elements[:]
+                new_list.extend(new_listt)
+            return List(new_list), None
+        else:
+            return None, Value.illegal_operation(self,other)
+
+    def divide(self, other):
+        pop_count = 0
+        if isinstance(other, List):
+            new_list = self.elements[:]
+            for idx in range(len(self.elements)):
+                if new_list[idx] in other.elements:
+                    new_list.pop(idx- pop_count)
+                    pop_count +=1
+            return List(new_list) , None
+        elif other.value in self.elements:
+            new_list = self.elements[:]
+            for idx in range(len(self.elements)):
+                if self.elements[idx] == other.value:
+                    new_list.pop(idx - pop_count )
+                    pop_count +=1
+
+            return List(new_list) , None
+        
+        else:
+            return None, RunTimeError(
+                other.start_pos, other.end_pos,
+            )
+
+
+    def minus(self,other):
+        new_list = self.elements[:]
+        if isinstance(other, List):
+            pop_count = 0
+            for num in other.elements:
+                new_list.pop(num -pop_count)
+                pop_count +=1
+            return List(new_list), None
+
+        elif isinstance(other,Number):
+            try:
+                new_list.pop(other.value)
+                return List(new_list), None
+            except:
+                return None, RuntimeError(
+                    other.start_pos, other.end_pos,
+                    "Invalid index".
+                    self.context
+                )
+        else:
+            return None, Value.illegal_operation(self,other)
+
+    def __repr__(self) -> str:
+        return  f"[{', '.join([str(elem) for elem in self.elements])}]"
+
+    def copy(self):
+        cop = List(self.elements[:])
+        cop.set_position(self.position)
+        cop.set_context(self.context)
+        return cop
+
 class Number(Value):
-	def __init__(self, value):
-		super().__init__()
-		self.value = value
+    def __init__(self, value)-> None:
+        super().__init__()
+        self.value = value
+        if type(value) == str:
+            if (float(value) %1) != 0:
+                self.value = float(value)
+            else:
+                self.value = int(value)   
 
-	def addition(self, other):
-		if isinstance(other, Number):
-			return Number(self.value + other.value).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def addition(self, other):
+        if isinstance(other, Number):
+            return Number(self.value + other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def subtract(self, other):
-		if isinstance(other, Number):
-			return Number(self.value - other.value).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def subtract(self, other):
+        if isinstance(other, Number):
+            return Number(self.value - other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def multiply(self, other):
-		if isinstance(other, Number):
-			return Number(self.value * other.value).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def multiply(self, other):
+        if isinstance(other, Number):
+            return Number(self.value * other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def divide(self, other):
-		if isinstance(other, Number):
-			if other.value == 0:
-				return None, RuntimeError(
-					other.start_pos, other.end_pos,
-					'Division by zero',
-					self.context
-				)
+    def divide(self, other):
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, RuntimeError(
+                    other.start_pos, other.end_pos,
+                    'Division by zero',
+                    self.context
+                )
 
-			return Number(self.value / other.value).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+            return Number(self.value / other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def powered(self, other):
-		if isinstance(other, Number):
-			return Number(self.value ** other.value).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def powered(self, other):
+        if isinstance(other, Number):
+            return Number(self.value ** other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def get_EQ(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value == other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def get_EQ(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value == other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def get_NE(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value != other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def get_NE(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value != other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def get_LT(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value < other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def get_LT(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value < other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def get_GT(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value > other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def get_GT(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value > other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def get_LTE(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value <= other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def get_LTE(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value <= other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def get_GTE(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value >= other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def get_GTE(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value >= other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def and_with(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value and other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def and_with(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value and other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def or_with(self, other):
-		if isinstance(other, Number):
-			return Number(int(self.value or other.value)).set_context(self.context), None
-		else:
-			return None, Value.illegal_operation(self, other)
+    def or_with(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value or other.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
 
-	def _not(self):
-		return Number(1 if self.value == 0 else 0).set_context(self.context), None
+    def _not(self):
+        return Number(1 if self.value == 0 else 0).set_context(self.context), None
 
-	def copy(self):
-		copy = Number(self.value)
-		copy.set_position(self.start_pos, self.end_pos)
-		copy.set_context(self.context)
-		return copy
+    def copy(self):
+        copy = Number(self.value)
+        copy.set_position(self.start_pos, self.end_pos)
+        copy.set_context(self.context)
+        return copy
 
-	def is_true(self):
-		return self.value != 0
-	
-	def __repr__(self):
-		return str(self.value)
+    def is_true(self):
+        return self.value != 0
+
+    def __repr__(self):
+        return str(self.value)
 
 class Function(Value):
     def __init__(self, name, body_node, arg_names):
@@ -1101,6 +1324,9 @@ class SymbolTable:
     def is_in(self,name):
         return True if name  in self.symbols.keys() else False
 
+    def __repr__(self) -> str:
+        return f'"{self.value}"'
+
 # this class takes the nodes after they were order with the parser
 # and then executes them in order  
 class Interpreter:
@@ -1125,6 +1351,11 @@ class Interpreter:
             ))
         value = value.copy().set_position(node.start_pos, node.end_pos)
         return res.success(value)
+
+    def visit_StringNode(self,node,context):
+        return RuntimeResult().success(
+            String(node.token.value).set_context(context).set_position(node.start_pos,node.end_pos)
+        )    
 
     def visit_var_assign_node(self, node, context):
         res = RuntimeResult()
@@ -1241,7 +1472,9 @@ class Interpreter:
     
     def visit_ForNode(self,node, context):
         res = RuntimeResult()
+        elements = []
         start_pointer = res.register(self.visit(node.start_value_node,context))
+
         if res.error:return res
         
         end_pointer = res.register(self.visit(node.end_value_node, context))
@@ -1261,26 +1494,44 @@ class Interpreter:
         while evaluate_condition():
             context.symbol_table.set(node.var_name_node.value,Number(pointer))
             pointer += 1
-            res.register(self.visit(node.body_node,context))
+            elements.append(res.register(self.visit(node.body_node,context)))
             if res.error: return res
 
-        return res.success(None) 
+        return res.success(
+            List(elements).set_context(context).set_position(node.start_pos,node.end_pos)
+        )
+
 
 
     
     def visit_WhileNode(self, node, context):
         res = RuntimeResult()
-
+        elements = []
         while True:
             condition = res.register(self.visit(node.condition_node, context))
             if res.error: return res
 
             if not condition.is_true(): break
 
-            res.register(self.visit(node.body_node,context))
+            elements.append(res.register(self.visit(node.body_node,context)))
             if res.error: return res
 
-        return res.success(None)
+        return res.success(
+            List(elements).set_context(context).set_position(node.start_pos,node.end_pos)
+        )
+
+
+    def visit_ListNode(self,node,context):
+        res = RuntimeResult()
+        elements = []
+
+        for elem in node.elements_nodes:
+            elements.append(res.register(self.visit(elem,context)))
+            if res.error : return res
+        
+        return res.success(
+            List(elements).set_context(context).set_position(node.start_pos,node.end_pos)
+        )
 
     def visit_functionDefNode(self,node, context):
         res = RuntimeResult()
