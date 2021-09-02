@@ -33,8 +33,9 @@ TOKEN_LCURLY      = 'LCURLY'
 TOKEN_RCURLY      = 'RCURLY'
 TOKEN_LSQUARE     = 'LSQUARE'
 TOKEN_RSQUARE     = 'RSQUARE'
-TOKEN_UNTIL       = 'UNTIL'
-TOKEN_SKIP        = 'SKIP'
+TOKEN_START       = 'UNTIL'
+TOKEN_END        = 'SKIP'
+TOKEN_ARROW       = 'ARROW'
 TOKEN_QUOTES      = '"'
 TOKEN_ANDSYMBOL   = "ANDSYMBOL"
 TOKEN_ORSYMBOL    = "ORSYMBOL"
@@ -55,7 +56,8 @@ KEYWORDS = [
     'PYTHON',
     'return',
     'break',
-    'continue'
+    'continue',
+    'skip'
 ]
 
 # this class is made for other claases to inherit from 
@@ -208,7 +210,7 @@ class Tokenizer:
                 tokens.append(self.make_identifier(symbol_found =True))           
             
             elif self.current_char == '-':
-                tokens.append(Token(TOKEN_MINUS, start_pos=self.position))
+                tokens.append(self.make_arrow())
                 self.advance()
 
             elif self.current_char == '*':
@@ -218,6 +220,7 @@ class Tokenizer:
             elif self.current_char == '!':
                 token, error = self.make_not_equal()
                 if error: return [], error
+                tokens.append(token)
                 self.advance()
 
             elif self.current_char == '/':
@@ -246,6 +249,7 @@ class Tokenizer:
             elif self.current_char == ',':
                 tokens.append(Token(TOKEN_COMMA, start_pos=self.position))
                 self.advance()
+
 
             elif self.current_char == '=':
                 tokens.append(self.make_equal())
@@ -350,10 +354,10 @@ class Tokenizer:
         self.advance()
         
         if self.current_char =='>' and Token_type == TOKEN_GT:
-            return Token(TOKEN_UNTIL,start_pos=start_pos,end_pos=self.position)
+            return Token(TOKEN_START,start_pos=start_pos,end_pos=self.position)
 
         if self.current_char =='<' and Token_type == TOKEN_LT:
-            return Token(TOKEN_SKIP,start_pos=start_pos,end_pos=self.position)
+            return Token(TOKEN_END,start_pos=start_pos,end_pos=self.position)
 
         if self.current_char == '=':
             Token_type += 'E'
@@ -386,6 +390,15 @@ class Tokenizer:
 
         self.advance()
         return Token(TOKEN_STRING, new_str, start_pos)
+    
+    def make_arrow(self):
+        start_pos = self.position.copy()
+        self.advance()
+
+        if self.current_char  == '>':
+            return Token(TOKEN_ARROW, start_pos=start_pos, end_pos=self.position)
+        else :
+            return Token(TOKEN_MINUS,start_pos = start_pos, end_pos=self.position)
 
 
 
@@ -549,7 +562,7 @@ class ParserResult:
     def Register(self,res):
         self.last_registered_Advance_count = res.advance_count
         self.advance_count += res.advance_count
-        if  res.should_return():self.error = res.error
+        if  res.error:self.error = res.error
         return  res.node
         
     def Sucsses(self,node):
@@ -557,18 +570,17 @@ class ParserResult:
         return self
 
     def failure(self, error):
-        if not self.error  or self.advance_count  == 0:
+        if not self.error  or self.last_registered_Advance_count  == 0:
             self.error = error
         return self
 
     def try_Register(self, res):
-        if  res.should_return():
+        if  res.error:
             self.to_reverse_count = res.advance_count
             return None
         return self.Register(res)
 
-    def should_return(self):
-        return self.error
+
 
 
 
@@ -583,14 +595,14 @@ class Parser:
     
     def advance(self):
         self.tok_idx += 1
-        if self.tok_idx < len(self.tokens):
+        if self.tok_idx >= 0 and self.tok_idx < len(self.tokens):
             self.curr_token = self.tokens[self.tok_idx]
 
         return self.curr_token
 
     def reverse(self, amount=1):
         self.tok_idx  -= amount
-        if self.tok_idx < len(self.tokens):
+        if self.tok_idx >= 0 and self.tok_idx < len(self.tokens):
             self.curr_token = self.tokens[self.tok_idx]
 
         return self.curr_token
@@ -616,7 +628,7 @@ class Parser:
             self.Register_advacement(res)
 
         stat = res.Register(self.statment())
-        if  res.should_return(): return res
+        if  res.error: return res
         statments.append(stat)
 
         more_statments = True
@@ -638,7 +650,7 @@ class Parser:
                 continue
 
             statments.append(stat)
-        self.Register_advacement(res)
+        # self.Register_advacement(res)
         return res.Sucsses(
             ListNode(statments,
             start_pos,
@@ -654,7 +666,7 @@ class Parser:
 
             expression = res.try_Register(self.Expression())
             if not expression:
-                self.reverse()
+                self.reverse(res.to_reverse_count)
             return res.Sucsses(ReturnNode(expression, start_pos, self.curr_token.start_pos.copy()))
         
         if self.curr_token.matches(TOKEN_KEYWORD, 'continue'):
@@ -663,17 +675,18 @@ class Parser:
 
         if self.curr_token.matches(TOKEN_KEYWORD, 'break'):
             self.Register_advacement(res)
-            return res.Sucsses(ContinueNode(start_pos, self.curr_token.start_pos.copy())) 
+            return res.Sucsses(BreakNode(start_pos, self.curr_token.start_pos.copy())) 
 
         expression = res.Register(self.Expression())
-        if  res.should_return():return res.failure(InvalidSyntaxErorr(start_pos,self.curr_token.start_pos.copy(),
-         "Expected 'let', int, float, identifier, '+', '-' or '(' "
+        if  res.error:return res.failure(InvalidSyntaxErorr(start_pos,self.curr_token.start_pos.copy(),
+         "Expected 'let', int, float, identifier, keyword,  '+', '-' or '(' "
         ))
         return res.Sucsses(expression)
+
     def call(self):
         res = ParserResult()
         most = res.Register(self.Most())
-        if  res.should_return():return res
+        if  res.error:return res
 
         if self.curr_token.type == TOKEN_LPAREN:
             self.Register_advacement(res)
@@ -683,7 +696,7 @@ class Parser:
                 self.Register_advacement(res)
             else:
                 arg_nodes.append(res.Register(self.Expression()))
-                if  res.should_return():
+                if  res.error:
                     return res.failure(InvalidSyntaxErorr(
                         self.curr_token.start_pos, self.curr_token.end_pos,
                         "Expected ')' , keyword, identifier, or values "
@@ -693,7 +706,7 @@ class Parser:
                     self.Register_advacement(res)
 
                     arg_nodes.append(res.Register(self.Expression()))
-                    if  res.should_return(): return res
+                    if  res.error: return res
 
                 if self.curr_token.type != TOKEN_RPARENT:
                     return res.failure(InvalidSyntaxErorr(
@@ -704,6 +717,7 @@ class Parser:
                 self.Register_advacement(res)
             return res.Sucsses(CallNode(most,arg_nodes))
         return res.Sucsses(most)
+
 # to understand the order of this reader grammers in the top of the file
     def Most(self):
         res = ParserResult()
@@ -723,7 +737,7 @@ class Parser:
             if self.curr_token.type == TOKEN_EQ:
                 self.Register_advacement(res)
                 new_value = res.Register(self.Expression())
-                if  res.should_return():return res
+                if  res.error:return res
 
                 return res.Sucsses(var_assign_node(token,new_value))
 
@@ -732,7 +746,7 @@ class Parser:
         elif token.type == TOKEN_LPAREN:
             self.Register_advacement(res)
             expr = res.Register(self.Expression())
-            if  res.should_return(): return res
+            if  res.error: return res
 
             if self.curr_token.type == TOKEN_RPARENT   :
                 self.Register_advacement(res)
@@ -745,27 +759,27 @@ class Parser:
 
         elif token.type == TOKEN_LSQUARE:
             expression = res.Register(self.list_expression())
-            if  res.should_return():return Error
+            if  res.error:return Error
             return res.Sucsses(expression)
 
         elif token.matches(TOKEN_KEYWORD, 'if'):
             expression = res.Register(self.If_expression())
-            if  res.should_return(): return res
+            if  res.error: return res
             return res.Sucsses(expression)
 
         elif token.matches(TOKEN_KEYWORD, 'while'):
             expression = res.Register(self.While_expression())
-            if  res.should_return(): return res
+            if  res.error: return res
             return res.Sucsses(expression)
 
         elif token.matches(TOKEN_KEYWORD, 'for'):
             expression = res.Register(self.For_expression())
-            if  res.should_return(): return res
+            if  res.error: return res
             return res.Sucsses(expression)
 
         elif token.matches(TOKEN_KEYWORD, 'func'):
             expression = res.Register(self.Func_expression())
-            if  res.should_return(): return res
+            if  res.error: return res
             return res.Sucsses(expression)
 
         
@@ -784,7 +798,7 @@ class Parser:
         if token.type in (TOKEN_PLUS, TOKEN_MINUS):
             self.Register_advacement(res)
             factor = res.Register(self.Factor())
-            if  res.should_return(): return res
+            if  res.error: return res
             return res.Sucsses(unaryoperationNode(token,factor))
 
         return self.power()
@@ -803,12 +817,12 @@ class Parser:
             self.Register_advacement(res)
 
             node  = res.Register(self.Comparison_expression())
-            if  res.should_return() :return res
+            if  res.error :return res
             return res.Sucsses(unaryoperationNode(operation_token,node))
 
         node = res.Register(self.bin_op(self.arithmetic_expression,(TOKEN_EE, TOKEN_NE, TOKEN_LT, TOKEN_GT, TOKEN_GTE, TOKEN_LTE)))
         
-        if  res.should_return(): 
+        if  res.error: 
             return res.failure(InvalidSyntaxErorr(
             self.curr_token.start_pos, self.curr_token.end_pos,
             "Expected int, float, identifier, '+', '-' , '(' , '[' or 'not' "
@@ -838,13 +852,13 @@ class Parser:
                 ))
             self.Register_advacement(res)
             expression = res.Register(self.Expression())
-            if  res.should_return():return res
+            if  res.error:return res
             return res.Sucsses(var_assign_node(variable_name, expression,True))
 
 
         node =  res.Register(self.bin_op(self.Comparison_expression, ((TOKEN_KEYWORD,"and"),  (TOKEN_KEYWORD, "or"))))
 
-        if  res.should_return(): 
+        if  res.error: 
             return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos, self.curr_token.end_pos,
                 "Expected 'let', int, float, identifier, '+', '-' or '(' "
@@ -858,13 +872,13 @@ class Parser:
         
         res = ParserResult()
         left = res.Register(func_a())
-        if  res.should_return(): return res
+        if  res.error: return res
 
         while self.curr_token.type in ops or (self.curr_token.type,self.curr_token.value) in ops:
             op_tok = self.curr_token
             self.Register_advacement(res)
             right = res.Register(func_b())
-            if  res.should_return(): return res
+            if  res.error: return res
             left = BinOpertaionNode(left, op_tok, right)
 
         return res.Sucsses(left)
@@ -872,7 +886,7 @@ class Parser:
     def If_expression(self):
         res = ParserResult()
         new_cases, else_case = res.Register(self.if_elif_maker('if'))
-        if  res.should_return():return res
+        if  res.error:return res
              
         return res.Sucsses(IfNode(new_cases, else_case))
 
@@ -896,12 +910,12 @@ class Parser:
         self.Register_advacement(res)
 
         condition  = res.Register(self.Expression())
-        if  res.should_return() : return res
+        if  res.error : return res
 
-        if not self.curr_token.type == TOKEN_LCURLY:
+        if not self.curr_token.type == TOKEN_START:
             return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos, self.curr_token.end_pos,
-                "Expected '{'"
+                "Expected '>>'"
             ))
         
         self.Register_advacement(res)
@@ -910,24 +924,24 @@ class Parser:
             self.Register_advacement(res)
 
             statments = res.Register(self.statments())
-            if  res.should_return(): return res
+            if  res.error: return res
             cases.append((condition, statments,True))
 
-            if self.curr_token.type == TOKEN_RCURLY:
+            if self.curr_token.type == TOKEN_END:
                 self.Register_advacement(res)
 
             else:
                 all_cases = res.Register(self.elif_else_expression())
-                if  res.should_return() : return res
+                if  res.error : return res
                 new_cases, else_case  = all_cases
                 cases.extend(new_cases )
         else:
             expression = res.Register(self.statment())
-            if  res.should_return() : return res
+            if  res.error : return res
             cases.append((condition, expression, False))
 
             all_cases = res.Register(self.elif_else_expression())
-            if  res.should_return(): return res
+            if  res.error: return res
             new_cases, else_case  = all_cases
             cases.extend(new_cases)
 
@@ -949,7 +963,7 @@ class Parser:
                 self.Register_advacement(res)
 
                 statments = res.Register(self.statments())
-                if  res.should_return(): return res
+                if  res.error: return res
                 else_case  = (statments,True)
 
                 if self.curr_token.type == TOKEN_RCURLY:
@@ -962,7 +976,7 @@ class Parser:
                     ))
             else:
                 expression = res.Register(self.statment())
-                if  res.should_return() : return res
+                if  res.error : return res
                 else_case = (expression, False)
 
         return res.Sucsses(
@@ -975,14 +989,13 @@ class Parser:
 
         if self.curr_token.matches(TOKEN_KEYWORD, "elif"):
             all_cases = res.Register(self.elif_expression())
-            if  res.should_return() : return res
+            if  res.error : return res
             cases, else_case = all_cases
         
         else:
             
             else_case = res.Register(self.else_expression())
-            print('|||||||||||||||||||||||||||||||||||||||||||||||| ', else_case)
-            if  res.should_return(): return res
+            if  res.error: return res
 
         return res.Sucsses((cases,else_case))
             
@@ -1012,30 +1025,31 @@ class Parser:
 
         self.Register_advacement(res)
         starting_pointer = res.Register(self.Expression())      
-        if  res.should_return(): return res
+        if  res.error: return res
 
-        if self.curr_token.type != TOKEN_UNTIL:
+        if self.curr_token.type != TOKEN_ARROW:
             return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos , self.curr_token.end_pos,
-                "Expected '>>' "
+                "Expected '->' "
             ))
 
         self.Register_advacement(res) 
 
         end_poniter = res.Register(self.Expression())
-        if  res.should_return(): return Error
+        if  res.error: return Error
         skip_value = None
-        if self.curr_token.type == TOKEN_LCURLY:
+        if self.curr_token.matches(TOKEN_KEYWORD,'skip'):
             self.Register_advacement(res)
             skip_value = res.Register(self.Expression())
+            print(skip_value)
 
-            if  res.should_return() :return res
+            if  res.error :return res
         
 
-        if not self.curr_token.type == TOKEN_LCURLY:
+        if not self.curr_token.type == TOKEN_START :
            return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos , self.curr_token.end_pos,
-                "Expected '{' "
+                "Expected '>>' "
             ))           
         
         self.Register_advacement(res)
@@ -1043,20 +1057,21 @@ class Parser:
             self.Register_advacement(res)
 
             body_content = res.Register(self.statments())
-            if  res.should_return(): return res
+            if  res.error: return res
 
-            if not self.curr_token.type == TOKEN_RCURLY:
+            if not self.curr_token.type == TOKEN_END:
                 return res.failure(InvalidSyntaxErorr(
                     self.curr_token.start_pos, self.curr_token.end_pos,
-                    "Expected '}'"
+                    "Expected '<<'"
                 ))
 
             self.Register_advacement(res)
+            
             return res.Sucsses(ForNode(pointer_name, starting_pointer,end_poniter,skip_value, body_content,True))
 
         body_content = res.Register(self.statment())
-        if  res.should_return(): return res
-
+        if  res.error: return res
+        
         return res.Sucsses(ForNode(pointer_name, starting_pointer,end_poniter,skip_value, body_content,False))
      
     def While_expression(self):
@@ -1064,12 +1079,12 @@ class Parser:
 
         self.Register_advacement(res)
         condition = res.Register(self.Expression())
-        if  res.should_return(): return res
+        if  res.error: return res
 
-        if self.curr_token.type != TOKEN_LCURLY:
+        if self.curr_token.type != TOKEN_START:
                return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos , self.curr_token.end_pos,
-                "Expected '{' "
+                "Expected '>>' "
 
             ))  
 
@@ -1079,18 +1094,18 @@ class Parser:
             self.Register_advacement(res)
 
             body_content = res.Register(self.statments())
-            if  res.should_return(): return res
+            if  res.error: return res
 
-            if not self.curr_token.type == TOKEN_RCURLY:
+            if not self.curr_token.type == TOKEN_END:
                 return res.failure(InvalidSyntaxErorr(
                     self.curr_token.start_pos, self.curr_token.end_pos,
-                    "Expected '}'"
+                    "Expected '<<'"
                 ))
-            return res.Sucsses(WhileNode((condition,body_content, True)))
+            return res.Sucsses(WhileNode(condition,body_content, True))
         body_content = res.Register(self.statment())
-        if  res.should_return(): return res
+        if  res.error: return res
 
-        return res.Sucsses(WhileNode((condition, body_content,False)))
+        return res.Sucsses(WhileNode(condition, body_content,False))
 
     def Func_expression(self):
         res = ParserResult()
@@ -1147,7 +1162,7 @@ class Parser:
                     ))
         self.Register_advacement(res)
             
-        if self.curr_token.type != TOKEN_UNTIL:
+        if self.curr_token.type != TOKEN_START:
             return res.failure(InvalidSyntaxErorr(
                     self.curr_token.start_pos, self.curr_token.end_pos,
                     "Expected '>>' "
@@ -1156,16 +1171,16 @@ class Parser:
             self.Register_advacement(res)
 
             body = res.Register(self.Expression())
-            if  res.should_return():return res
+            if  res.error:return res
 
             return res.Sucsses(functionDefNode(func_name_token, arg_name_tokens, body,False))
         
         self.Register_advacement(res)
 
         body = res.Register(self.statments())
-        if  res.should_return():return res
+        if  res.error:return res
 
-        if not self.curr_token.type == TOKEN_SKIP:
+        if not self.curr_token.type == TOKEN_END:
             return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos,self.curr_token.end_pos,
                 "Expected '<<'"
@@ -1192,7 +1207,7 @@ class Parser:
             self.Register_advacement(res) 
         else:
             elements_nodes.append(res.Register(self.Expression()))
-            if  res.should_return():
+            if  res.error:
                 return res.failure(InvalidSyntaxErorr(
                     self.curr_token.start_pos, self.curr_token.end_pos,
                     "Expected ']' , keyword, identifier  or values"
@@ -1202,7 +1217,7 @@ class Parser:
                 self.Register_advacement(res)
 
                 elements_nodes.append(res.Register(self.Expression()))
-                if  res.should_return(): return res
+                if  res.error: return res
 
             if self.curr_token.type != TOKEN_RSQUARE:
                 return res.failure(InvalidSyntaxErorr(
@@ -1643,13 +1658,13 @@ class Function(BaseFunction):
 
     value = res.Register(interpreter.visit(self.body_node, exec_ctx))
     if  res.should_return() and res.func_return_value == None: return res
-    return_value = (value if self.should_auto_return else None) or res.func_return_value or Number.null
+    return_value = (value if self.should_return_null else None) or res.func_return_value or Number.null
     return res.success(return_value)
 
   def copy(self):
     copy = Function(self.name, self.body_node, self.arg_names,self.should_return_null)
     copy.set_context(self.context)
-    copy.set_pos(self.start_pos, self.end_pos)
+    copy.set_position(self.start_pos, self.end_pos)
     return copy
 
   def __repr__(self):
@@ -1813,7 +1828,7 @@ class BuiltInFunction(BaseFunction):
         return RuntimeResult().success(Number(len(list_.elements)))
     execute_length.arg_names = ["list"]     
 
-    def execute_run(self,exec_ctx):
+    def execute_Run(self,exec_ctx):
         fn = exec_ctx.symbol_table.get('fn')
         if not isinstance(fn, String):
             return RuntimeResult().failure(RunTimeError(
@@ -1845,7 +1860,8 @@ class BuiltInFunction(BaseFunction):
             ))
 
         return RuntimeResult().success(Number.null)
-    execute_run.arg_names = ['fn']
+    execute_Run.arg_names = ['fn']
+
 BuiltInFunction.print       = BuiltInFunction("print")
 BuiltInFunction.input       = BuiltInFunction("input")
 BuiltInFunction.input_int   = BuiltInFunction("input_int")
@@ -1857,6 +1873,9 @@ BuiltInFunction.is_function = BuiltInFunction("is_function")
 BuiltInFunction.append      = BuiltInFunction("append")
 BuiltInFunction.pop         = BuiltInFunction("pop")
 BuiltInFunction.extend      = BuiltInFunction("extend")
+BuiltInFunction.Run         = BuiltInFunction("Run")
+BuiltInFunction.length      = BuiltInFunction("length")
+
 
 class Context:
     def __init__(self,display_name, parent=None, parent_entry_pos=None) -> None:
@@ -2032,7 +2051,7 @@ class Interpreter:
         
         return res.success(Number.null)
     
-    def visit_ForNode(self,node, context):
+    def visit_ForNode(self, node, context):
         res = RuntimeResult()
         elements = []
         start_pointer = res.Register(self.visit(node.start_value_node,context))
@@ -2042,20 +2061,19 @@ class Interpreter:
         end_pointer = res.Register(self.visit(node.end_value_node, context))
         if  res.should_return():return res
         
-        skip_value = 1
+        skip_value = Number(1)
         if node.skip_value_node:
             skip_value = res.Register(self.visit(node.skip_value_node,context))
-            skip_value = skip_value.value
             if  res.should_return():return res
 
         pointer = start_pointer.value
 
         def evaluate_condition():
-             return pointer < end_pointer.value if skip_value >= 0 else pointer > end_pointer.value
+             return pointer < end_pointer.value if skip_value.value >= 0 else pointer > end_pointer.value
              
         while evaluate_condition():
             context.symbol_table.set(node.var_name_node.value,Number(pointer))
-            pointer += 1
+            pointer += skip_value.value
             value = res.Register(self.visit(node.body_node,context))
             if  res.should_return() and res.loop_should_continue == False and res.loop_should_break == False: return res
 
@@ -2177,7 +2195,7 @@ global_symbol_table.set("is_funct", BuiltInFunction.is_function)
 global_symbol_table.set("appemd", BuiltInFunction.append)
 global_symbol_table.set("pop", BuiltInFunction.pop)
 global_symbol_table.set("extend", BuiltInFunction.extend)
-global_symbol_table.set("run", BuiltInFunction.run)
+global_symbol_table.set("Run", BuiltInFunction.Run)
 global_symbol_table.set("length", BuiltInFunction.length)
 
 
@@ -2185,7 +2203,7 @@ def Run(text: str, fn: str):
     #generate tokens
     tokenizer = Tokenizer(text, fn)
     tokens, error =tokenizer.make_tokens()
-    if error:return None ,error
+    if error:return None, error
     # generate Ast
     parser = Parser(tokens)
     ast = parser.parse() # abstract syntax tree
@@ -2194,7 +2212,7 @@ def Run(text: str, fn: str):
     interpreter = Interpreter()
     context = Context("<module>")
     context.symbol_table = global_symbol_table
-    result = interpreter.visit(ast.node,context)
+    result = interpreter.visit(ast.node, context)
     
     return result.value, result.error
 
