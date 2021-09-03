@@ -446,7 +446,7 @@ class BinOpertaionNode:
         self.end_pos = right_node.end_pos
 
     def __repr__(self) -> str:
-        return f'( {self.left_node} {self.operation} {self.right_node} )'
+        return f'( {self.left_node} {self.operation_token} {self.right_node} )'
 
 
 class var_assign_node:
@@ -825,7 +825,7 @@ class Parser:
         if  res.error: 
             return res.failure(InvalidSyntaxErorr(
             self.curr_token.start_pos, self.curr_token.end_pos,
-            "Expected int, float, identifier, '+', '-' , '(' , '[' or 'not' "
+            "Expected int, float, identifier, keyword, '+', '-' , '(' , '[' or 'not' "
         ))
 
         return res.Sucsses(node)
@@ -857,7 +857,6 @@ class Parser:
 
 
         node =  res.Register(self.bin_op(self.Comparison_expression, ((TOKEN_KEYWORD,"and"),  (TOKEN_KEYWORD, "or"))))
-
         if  res.error: 
             return res.failure(InvalidSyntaxErorr(
                 self.curr_token.start_pos, self.curr_token.end_pos,
@@ -1041,7 +1040,7 @@ class Parser:
         if self.curr_token.matches(TOKEN_KEYWORD,'skip'):
             self.Register_advacement(res)
             skip_value = res.Register(self.Expression())
-            print(skip_value)
+
 
             if  res.error :return res
         
@@ -1140,6 +1139,7 @@ class Parser:
 
             while self.curr_token.type == TOKEN_COMMA:
                 self.Register_advacement(res)
+
                 if self.curr_token.type != TOKEN_IDENTIFIER:
                     return res.failure(InvalidSyntaxErorr(
                         self.curr_token.start_pos, self.curr_token.end_pos,
@@ -1167,14 +1167,16 @@ class Parser:
                     self.curr_token.start_pos, self.curr_token.end_pos,
                     "Expected '>>' "
                 ))
-        if self.curr_token.type != TOKEN_NEWLINE:
-            self.Register_advacement(res)
 
+        self.Register_advacement(res)
+
+        if self.curr_token.type != TOKEN_NEWLINE:
+            
             body = res.Register(self.Expression())
             if  res.error:return res
 
-            return res.Sucsses(functionDefNode(func_name_token, arg_name_tokens, body,False))
-        
+            return res.Sucsses(functionDefNode(func_name_token, arg_name_tokens, body,True))
+
         self.Register_advacement(res)
 
         body = res.Register(self.statments())
@@ -1192,7 +1194,7 @@ class Parser:
                 func_name_token,
                 arg_name_tokens,
                 body,
-                True
+                False
             )
         )
     
@@ -1659,6 +1661,7 @@ class Function(BaseFunction):
     value = res.Register(interpreter.visit(self.body_node, exec_ctx))
     if  res.should_return() and res.func_return_value == None: return res
     return_value = (value if self.should_return_null else None) or res.func_return_value or Number.null
+
     return res.success(return_value)
 
   def copy(self):
@@ -2149,8 +2152,9 @@ class Interpreter:
         args = []
 
         value_to_call = res.Register(self.visit(node.node_to_call, context))
+        print(value_to_call)
         if  res.should_return(): return res
-        value_to_call = value_to_call.copy().set_position(node.start_pos, node.start_pos)
+        value_to_call = value_to_call.copy().set_position(node.start_pos, node.end_pos)
 
         for arg_node in node.arg_nodes:
             args.append(res.Register(self.visit(arg_node, context)))
@@ -2165,7 +2169,7 @@ class Interpreter:
         res = RuntimeResult()
         if node.node_to_return:
             value = res.Register(self.visit(node.node_to_return, context))
-        if res.should_return(): return res
+            if res.should_return(): return res
         else:
             value = Number.null
         
