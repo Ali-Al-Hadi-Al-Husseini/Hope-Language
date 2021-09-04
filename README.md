@@ -1,111 +1,104 @@
 # Hope language
   Hope is a small programing lanuage developed by Ali Al Hadi
   
-#Variable
+## Variable
 
-## string or number varibles declaration
+### string or number varibles declaration
 
-'''code
-let var_name = some_value
-'''
-## list declaration
-'''code
-   let list_name = [list_elements] (use comma between elements)
-'''
-# Control-Flow
+    let var_name = some_value
+    
+### list declaration
+    
+    let list_name = [list_elements] (use comma between elements)
 
-## If conditional
-'''code
-  if condition >> 
-    do_something
+## Control-Flow
+
+### If conditional
+
+    if condition >> 
+        do_something
+    << 
+    
+
+
+### Elif conditional
+
+    if condition >> 
+            do_something
+    elif another_condition>>
+        do_something_else 
+        (if and only if the first_conditon is not true and the 2nd is true)
     << 
 
-'''
 
-## Elif conditional
-'''code
-  if condition >> 
-    do_something
-  elif another_condition>>
-    do_something_else (if and only if the first_conditon is not true and the 2nd is true)
+### Else conditional
+
+    if condition >> 
+        do_something
+    else >>
+        do_something_else
     << 
 
-'''
-## Else conditional
-'''code
-  if condition >> 
-    do_something
-  else >>
-    do_something_else
-    << 
+### inline If conditional
 
-'''
-## inline If conditional
-'''code
-  if condition >> do_something
-  (it is possible to use elif and else control-flow in the same line like the flowing line)
-  
-  if conditon >> do_Something else do_something_else
+    if condition >> do_something
+    (it is possible to use elif and else control-flow in the same line like the flowing line)
+    if conditon >> do_Something else do_something_else
 
-'''
-## Using control-flow inside a variable
-'''code
-  let var_name = if condition >> give_the_variable_this_value else give_it_another_value
 
-'''
+### Using control-flow inside a variable
 
-# Loops
+    let var_name = if condition >> give_the_variable_this_value else give_another_value
 
-## For loop
-'''code
+
+
+## Loops
+
+### For loop
+
     for i=start_value -> end_value >>
-    body
-    <<
-'''
-
-## inline For loops
-'''code
-    for i=start_value -> end_value >> do_somthing
-'''
-
-## while loop
-'''code
-
-  while condition >>
-    body
+            body
     <<
 
-'''
-## inline while loop
-'''code
 
-  while condition >> do_something
-
-'''
+### inline For loops
+    
+        for i=start_value -> end_value >> do_somthing
 
 
-#Functions
+### while loop
 
-## typical function declaration 
-'''code
+    
+      while condition >>
+        body
+        <<
+
+
+### inline while loop
+
+    while condition >> do_something
+
+## Functions
+
+### typical function declaration 
+
     func function_name(paramters) >>
-      Body
-    <<
-'''
+            Body
+        <<
 
-##  function declaration  in variables
-'''code
-   let function_name =  func (paramters) >>
+
+###  function declaration  in variables
+
+    let function_name =  func (paramters) >>
                               Body
                               return something
                             <<
-'''
 
-##  inline function declaration  
-'''code
-   func function_name(paramters) >> return_value(directly no need for return keyword)
+
+###  inline function declaration  
+
+    func function_name(paramters) >> return_value(directly no need to use  return keyword)
                               
-'''
 
 Hope is inspired by python and javascript with a twist
 
