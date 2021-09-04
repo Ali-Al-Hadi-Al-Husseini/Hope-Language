@@ -1,5 +1,6 @@
 # Hope language
   Hope is a small programing lanuage developed by Ali Al Hadi
+  it is inspired by python and javascript with a small twist
   
 ## Variable
 
@@ -99,6 +100,19 @@
 
     func function_name(paramters) >> return_value(directly no need to use  return keyword)
                               
+                              
+                              
+       
+## Runing Hope
 
-Hope is inspired by python and javascript with a twist
+### Runing from file (in terminal)
+
+  python3 Hope.py file_name
+ 
+ 
+### Runing  hope shell
+
+  python3 Hope.py (shell will automaticaly start to stop shell use exit keyword)
+
+
 
