@@ -1,9 +1,10 @@
-""" HOPE 
+""" HOPE
 
 """
 import string
 import os
 import math
+import sys
 
 DIGITS        = '0123456789'
 LETTERS       = string.ascii_letters # t
@@ -57,7 +58,8 @@ KEYWORDS = [
     'return',
     'break',
     'continue',
-    'skip'
+    'skip',
+    'run'
 ]
 
 # this class is made for other claases to inherit from 
@@ -69,7 +71,7 @@ class Error:
         self.end_pos = end_pos
 
     def as_string(self):
-        result =  f'{self.error_name}: {self.details} \n File {self.start_pos.fn}, line {self.start_pos.line + 1}'
+        result =  str(f'{self.error_name}: {self.details} \n File {self.start_pos.fn}, line {self.start_pos.line + 1}')
         result += '\n\n' + string_with_arrows(self.start_pos.ftxt, self.start_pos, self.end_pos)
         return result
 
@@ -86,13 +88,18 @@ class RunTimeError(Error):
         super().__init__(start_pos, end_pos, "Runtime Error", details)
         self.context = context
 
+    def as_string(self):
+        result =  str(f'{self.error_name}: {self.details} \n File {self.start_pos.fn}, line {self.start_pos.line + 1}')
+        result += '\n\n' + string_with_arrows(self.start_pos.ftxt, self.start_pos, self.end_pos)
+        return result
+
 class ExpectedCharError(Error):
     def __init__(self, start_pos: int, end_pos: int, error_name: str, details: str) -> None:
         super().__init__(start_pos, end_pos, error_name, details)
 
     def as_string(self):
         result = self.generate_traceback()
-        result +=  f'{self.error_name}: {self.details}'
+        result +=  str(f'{self.error_name}: {self.details}')
         result += '\n\n' + string_with_arrows(self.start_pos.ftxt, self.start_pos, self.end_pos)
 
         return result
@@ -103,7 +110,7 @@ class ExpectedCharError(Error):
         ctx = self.context
 
         while ctx:
-            result = f'  File {pos.fn}, line {str(pos.line + 1)}, in {ctx.display_name}\n' + result
+            result = str(f'  File {pos.fn}, line {str(pos.line + 1)}, in {ctx.display_name}\n') + result
             pos = ctx.parent_entry_pos
             ctx = ctx.parent
 
@@ -151,7 +158,7 @@ class Token():
     def __repr__(self) -> str:
         if self.value:
             return "{}:{}".format(self.type, self.value)
-        return f'{self.type}'
+        return str(f'{self.type}')
 
     def matches(self, _type, value):
         return self.type == _type and self.value == value
@@ -179,10 +186,11 @@ class Tokenizer:
 
             if self.current_char in ' \t':
                 self.advance()
+
             elif self.current_char == '#':
                 self.advance()
 
-                while self.current_char != '\n':
+                while self.current_char != '\n' :
                     self.advance()
                 self.advance()
 
@@ -190,7 +198,9 @@ class Tokenizer:
                 tokens.append(self.make_number())
             
             elif self.current_char in LETTERS:
-                tokens.append(self.make_identifier())
+                ident, error = self.make_identifier()
+                if error : return error
+                tokens.append(ident)
 
             elif self.current_char in ';\n':
                 tokens.append(Token(TOKEN_NEWLINE, start_pos=self.position))
@@ -301,9 +311,9 @@ class Tokenizer:
         if dot_count == 0:
             return Token(TOKEN_INT, int(num_str),start_pos, self.position)
         else:
-            return Token(TOKEN_FLOAT, float(num_str, start_pos, self.position))
-    
-    def make_identifier(self,symbol_found=False):
+            return Token(TOKEN_FLOAT, float(num_str), start_pos, self.position)
+
+    def make_identifier(self, symbol_found=False):
         if symbol_found:
             symbols_table = {
                             '&': 'and',
@@ -321,9 +331,8 @@ class Tokenizer:
             id_str += self.current_char
             self.advance()
 
-
         token_type = TOKEN_KEYWORD if id_str in KEYWORDS else TOKEN_IDENTIFIER  
-        return Token(token_type,id_str,start_pos,self.position)
+        return Token(token_type,id_str,start_pos,self.position), None
     
 
 
@@ -410,7 +419,7 @@ class StringNode:
         self.end_pos = token.end_pos
 
     def __repr__(self) -> str:
-        return f'{self.token}'
+        return str(f'{self.token}')
 
 class NumberNode:
     def __init__(self,token : Token) -> None:
@@ -419,14 +428,22 @@ class NumberNode:
         self.end_pos = token.end_pos
 
     def __repr__(self) -> str:
-        return f'{self.token}'
+        return str(f'{self.token}')
 
 class ListNode:
     def __init__(self,elements_nodes,start_pos,end_pos):
         self.elements_nodes = elements_nodes
         self.start_pos = start_pos
         self.end_pos  = end_pos
-        
+
+class ListacssesNode:
+    def __init__(self, ident, index, start_pos,end_pos):
+        self.ident = ident
+        self.index = index
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+
+
 class unaryoperationNode:
     def __init__(self, operator_token , node) -> None:
         self.operation_token = operator_token
@@ -435,7 +452,7 @@ class unaryoperationNode:
         self.end_pos = node.end_pos
 
     def __repr__(self) -> str:
-        return f'({self.operator_token}, {self.node})'
+        return str(f'({self.operator_token}, {self.node})')
 
 class BinOpertaionNode:
     def __init__(self, right_node, operation_token, left_node) -> None:
@@ -446,7 +463,7 @@ class BinOpertaionNode:
         self.end_pos = right_node.end_pos
 
     def __repr__(self) -> str:
-        return f'( {self.left_node} {self.operation_token} {self.right_node} )'
+        return str(f'( {self.left_node} {self.operation_token} {self.right_node} )')
 
 
 class var_assign_node:
@@ -733,7 +750,7 @@ class Parser:
 
         elif token.type is TOKEN_IDENTIFIER:
             self.Register_advacement(res)
-
+            ident = token.value
             if self.curr_token.type == TOKEN_EQ:
                 self.Register_advacement(res)
                 new_value = res.Register(self.Expression())
@@ -741,6 +758,20 @@ class Parser:
 
                 return res.Sucsses(var_assign_node(token,new_value))
 
+            elif self.curr_token.type == TOKEN_LSQUARE:
+                self.Register_advacement(res)
+                if self.curr_token.type == TOKEN_INT:
+                    index = self.curr_token
+                    self.Register_advacement(res)
+
+                    if self.curr_token.type != TOKEN_RSQUARE:
+                        res.failure(InvalidSyntaxErorr(index.start_pos,index.end_pos,
+                                                       f"Expected ']' after index {index.value}"))
+                        return res
+                    end_pos = self.curr_token.end_pos.copy()
+                    self.Register_advacement(res)
+
+                    return res.Sucsses(ListacssesNode(ident, index.value, token.start_pos.copy(), end_pos))
             return res.Sucsses(var_access_node(token))
 
         elif token.type == TOKEN_LPAREN:
@@ -902,7 +933,7 @@ class Parser:
         if not self.curr_token.matches(TOKEN_KEYWORD, ident):
             return res.error(InvalidSyntaxErorr(
                 self.curr_token.start_pos, self.curr_token.end_pos,
-                f"Expected {ident}"
+                str(f"Expected {ident}")
             )
 
             )
@@ -957,7 +988,14 @@ class Parser:
 
         if self.curr_token.matches(TOKEN_KEYWORD, 'else'):
             self.Register_advacement(res)
-
+            
+            if self.curr_token.type != TOKEN_START:
+                    return res.failure(InvalidSyntaxErorr(
+                        self.curr_token.start_pos, self.curr_token.end_pos,
+                        "Expected '>>'"
+                    ))
+            
+            self.Register_advacement(res)
             if self.curr_token.type == TOKEN_NEWLINE:
                 self.Register_advacement(res)
 
@@ -965,13 +1003,13 @@ class Parser:
                 if  res.error: return res
                 else_case  = (statments,True)
 
-                if self.curr_token.type == TOKEN_RCURLY:
+                if self.curr_token.type == TOKEN_END:
                     self.Register_advacement(res)
 
                 else:
                     return res.failure(InvalidSyntaxErorr(
                         self.curr_token.start_pos, self.curr_token.end_pos,
-                        "Expected '}'"
+                        "Expected '<<'"
                     ))
             else:
                 expression = res.Register(self.statment())
@@ -1002,9 +1040,15 @@ class Parser:
     def Register_advacement(self,res):
         res.Register_advancement()
         self.advance()
+    def ListCall_expression(self):
+        res  = ParserResult()
+        txt = self.curr_token.value
+        self.Register_advacement()
 
     def For_expression(self):
         res = ParserResult()
+
+
         self.Register_advacement(res)
 
         if self.curr_token.type != TOKEN_IDENTIFIER:
@@ -1283,80 +1327,80 @@ class RuntimeResult:
     )
 
 class Value():
-	def __init__(self):
-		self.set_position()
-		self.set_context()
+    def __init__(self):
+        self.set_position()
+        self.set_context()
 
-	def set_position(self, start_pos=None, end_pos=None):
-		self.start_pos = start_pos
-		self.end_pos = end_pos
-		return self
+    def set_position(self, start_pos=None, end_pos=None):
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        return self
 
-	def set_context(self, context=None):
-		self.context = context
-		return self
+    def set_context(self, context=None):
+        self.context = context
+        return self
 
-	def addition(self, other):
-		return None, self.illegal_operation(other)
+    def addition(self, other):
+        return None, self.illegal_operation(other)
 
-	def subtract(self, other):
-		return None, self.illegal_operation(other)
+    def subtract(self, other):
+        return None, self.illegal_operation(other)
 
-	def multiply(self, other):
-		return None, self.illegal_operation(other)
+    def multiply(self, other):
+        return None, self.illegal_operation(other)
 
-	def divide(self, other):
-		return None, self.illegal_operation(other)
+    def divide(self, other):
+        return None, self.illegal_operation(other)
 
-	def powered(self, other):
-		return None, self.illegal_operation(other)
+    def powered(self, other):
+        return None, self.illegal_operation(other)
 
-	def get_EQ(self, other):
-		return None, self.illegal_operation(other)
-    
-	def get_EE(self, other):
-		return None, self.illegal_operation(other)
+    def get_EQ(self, other):
+        return None, self.illegal_operation(other)
 
-	def get_NE(self, other):
-		return None, self.illegal_operation(other)
+    def get_EE(self, other):
+        return None, self.illegal_operation(other)
 
-	def get_LT(self, other):
-		return None, self.illegal_operation(other)
+    def get_NE(self, other):
+        return None, self.illegal_operation(other)
 
-	def get_GT(self, other):
-		return None, self.illegal_operation(other)
+    def get_LT(self, other):
+        return None, self.illegal_operation(other)
 
-	def get_LTE(self, other):
-		return None, self.illegal_operation(other)
+    def get_GT(self, other):
+        return None, self.illegal_operation(other)
 
-	def get_GTE(self, other):
-		return None, self.illegal_operation(other)
+    def get_LTE(self, other):
+        return None, self.illegal_operation(other)
 
-	def and_with(self, other):
-		return None, self.illegal_operation(other)
+    def get_GTE(self, other):
+        return None, self.illegal_operation(other)
 
-	def or_with(self, other):
-		return None, self.illegal_operation(other)
+    def and_with(self, other):
+        return None, self.illegal_operation(other)
 
-	def _not(self):
-		return None, self.illegal_operation()
+    def or_with(self, other):
+        return None, self.illegal_operation(other)
 
-	def execute(self, args):
-		return RuntimeResult().failure(self.illegal_operation())
+    def _not(self):
+        return None, self.illegal_operation()
 
-	def copy(self):
-		raise Exception('No copy method defined')
+    def execute(self, args):
+        return RuntimeResult().failure(self.illegal_operation())
 
-	def is_true(self):
-		return False
+    def copy(self):
+        raise Exception('No copy method defined')
 
-	def illegal_operation(self, other=None):
-		if not other: other = self
-		return RuntimeError(
-			self.start_pos, other.end_pos,
-			'Illegal operation',
-			self.context
-		)
+    def is_true(self):
+        return False
+
+    def illegal_operation(self, other=None):
+        if not other: other = self
+        return RuntimeError(
+            self.start_pos, other.end_pos,
+            'Illegal operation',
+            self.context
+        )
 
 class String(Value):
     def __init__(self,value):
@@ -1370,10 +1414,8 @@ class String(Value):
             return None, Value.illegal_operation(self,other)
 
     def addition(self, other):
-        if isinstance(other,String):
-            return String(self.value + other.value).set_context(self.context), None
-        else:
-            return None, Value.illegal_operation(self,other)
+        return String(self.value + str(other.value)).set_context(self.context), None
+
 
     def change_to(self,char, by_this):
         if isinstance(char,String) and isinstance(by_this,String):
@@ -1394,8 +1436,8 @@ class String(Value):
         copy.set_position(self.start_pos, self.end_pos)
         return copy
     def __repr__(self):
-        return f'"{self.value}"'
-
+        return str(f'"{self.value}"'
+)
 class List(Value):
     def __init__(self,elements) -> None:
         super().__init__()
@@ -1468,15 +1510,17 @@ class List(Value):
     #                 self.context
     #             )
     #     else:
-    #         print("||||||||||||||||||||||||||")
     #         return None, Value.illegal_operation(self,other)
 
     def __repr__(self) -> str:
-        return  f"[{', '.join([str(elem) for elem in self.elements])}]"
+        return  str(f" [{', '.join([str(elem) for elem in self.elements])}] ")
+
+    def __len__(self) -> int:
+        return len(self.elements)
 
     def copy(self):
         cop = List(self.elements)
-        cop.set_position(self.position)
+        cop.set_position(self.start_pos, self.end_pos)
         cop.set_context(self.context)
         return cop
 
@@ -1616,14 +1660,14 @@ class BaseFunction(Value):
         if len(args) > len(arg_names):
             return res.failure(RunTimeError(
             self.start_pos, self.end_pos,
-            f"{len(args) - len(arg_names)} too many args passed into {self}",
+            str(f"{len(args) - len(arg_names)} too many args passed into {self}"),
             self.context
             ))
 
         if len(args) < len(arg_names):
             return res.failure(RunTimeError(
             self.start_pos, self.end_pos,
-            f"{len(arg_names) - len(args)} too few args passed into {self}",
+            str(f"{len(arg_names) - len(args)} too few args passed into {self}"),
             self.context
             ))
 
@@ -1651,6 +1695,7 @@ class Function(BaseFunction):
     self.should_return_null = should_return_null
 
   def execute(self, args):
+    
     res = RuntimeResult()
     interpreter = Interpreter()
     exec_ctx = self.generate_new_context()
@@ -1671,7 +1716,7 @@ class Function(BaseFunction):
     return copy
 
   def __repr__(self):
-    return f"<function {self.name}>"
+    return str("<function {self.name}>")
 
 class BuiltInFunction(BaseFunction):
     def __init__(self, name):
@@ -1681,8 +1726,9 @@ class BuiltInFunction(BaseFunction):
         res = RuntimeResult()
         exec_ctx = self.generate_new_context()
 
-        method_name = f'execute_{self.name}'
+        method_name =str( f'execute_{self.name}')
         method = getattr(self, method_name, self.no_visit_method)
+
 
         res.Register(self.check_and_populate_args(method.arg_names, args, exec_ctx))
         if  res.should_return(): return res
@@ -1692,7 +1738,7 @@ class BuiltInFunction(BaseFunction):
         return res.success(return_value)
 
     def no_visit_method(self, node, context):
-        raise Exception(f'No execute_{self.name} method defined')
+        raise Exception(str(f'No execute_{self.name} method defined'))
 
     def copy(self):
         copy = BuiltInFunction(self.name)
@@ -1701,31 +1747,38 @@ class BuiltInFunction(BaseFunction):
         return copy
 
     def __repr__(self):
-        return f"<built-in function {self.name}>"
+        return str(f"<built-in function {self.name}>")
 
   #####################################
 
     def execute_print(self, exec_ctx):
-        print(str(exec_ctx.symbol_table.get('value'))[1:-1])
+        value = exec_ctx.symbol_table.get('value')
+        if type(value) == Number:
+            print(value)
+        else:
+            print(str(value)[1:-1])
         return RuntimeResult().success(String(str(exec_ctx.symbol_table.get('value'))))
     execute_print.arg_names = ['value']
 
   
     def execute_input(self, exec_ctx):
-        text = input()
+        list_reper = list(str(exec_ctx.symbol_table.get('value')))
+        text = input("".join(list_reper[1:-1]))
+
         return RuntimeResult().success(String(text))
-    execute_input.arg_names = []
+    execute_input.arg_names = ['value']
 
     def execute_input_int(self, exec_ctx):
         while True:
-            text = input()
+            list_reper = list(str(exec_ctx.symbol_table.get('value')))
+            text = input("".join(list_reper[1:-1]))
             try:
                 number = int(text)
                 break
             except ValueError:
-                print(f"'{text}' must be an integer. Try again!")
+                print(str(f"'{text}' must be an integer. Try again!"))
         return RuntimeResult().success(Number(number))
-    execute_input_int.arg_names = []
+    execute_input_int.arg_names = ['value']
 
     def execute_clear(self, exec_ctx):
         os.system('cls' if os.name == 'nt' else 'cls') 
@@ -1833,9 +1886,10 @@ class BuiltInFunction(BaseFunction):
 
     def execute_Run(self,exec_ctx):
         fn = exec_ctx.symbol_table.get('fn')
+
         if not isinstance(fn, String):
             return RuntimeResult().failure(RunTimeError(
-            self.pos_start, self.pos_end,
+            self.start_pos, self.end_pos,
             "Second argument must be string",
             exec_ctx
         ))
@@ -1844,20 +1898,23 @@ class BuiltInFunction(BaseFunction):
 
         try:
             with open(fn, "r") as f:
-                script = f.read()
+                script = str(f.read())
         except Exception as e:
             return RuntimeResult().failure(RunTimeError(
-                self.pos_start, self.pos_end,
-                f"Failed to load script \"{fn}\"\n" + str(e),
+                self.start_pos, self.end_pos,
+                str(f"Failed to load script \"{fn}\"\n") + str(e),
                 exec_ctx
             ))
 
-        _, error = Run(fn, script)
-        
+        temp_ = list(script)
+        while temp_[0] == "\n":
+            temp_.pop(0)
+
+        _ , error = run(temp_, fn)
         if error:
             return RuntimeResult().failure(RunTimeError(
-                self.pos_start, self.pos_end,
-                f"Failed to finish executing script \"{fn}\"\n" +
+                self.start_pos, self.end_pos,
+                str(f"Failed to finish executing script \"{fn}\"\n") +
                 error.as_string(),
                 exec_ctx
             ))
@@ -1908,18 +1965,18 @@ class SymbolTable:
         return True if name  in self.symbols.keys() else False
 
     def __repr__(self) -> str:
-        return f'"{self.value}"'
+        return '"{}"'.format(self.value)
 
 # this class takes the nodes after they were order with the parser
 # and then executes them in order  
 class Interpreter:
     def visit(self,node, context):
-        method_name = f"visit_{type(node).__name__}"
+        method_name = str(f"visit_{type(node).__name__}")
         method = getattr(self,method_name,self.no_visit_method)
         return method(node,context) 
     
     def no_visit_method(self,node, context):
-        raise Exception(f"No visit_{type(node).__name__} method defined")
+        raise Exception(str(f"No visit_{type(node).__name__} method defined"))
 
     def visit_var_access_node(self, node, context):
         res = RuntimeResult()
@@ -1929,7 +1986,7 @@ class Interpreter:
         if not value:
             return res.failure(RunTimeError(
                 node.start_pos, node.end_pos,
-                f"{var_name} is not defined",
+                str(f"{var_name} is not defined"),
                 context
             ))
         value = value.copy().set_position(node.start_pos, node.end_pos).set_context(context)
@@ -1953,7 +2010,7 @@ class Interpreter:
         else:
             return res.failure(InvalidSyntaxErorr(
                 node.start_pos, node.end_pos,
-                f"Variable '{var_name}' refernced before assignment"
+                str(f"Variable '{var_name}' refernced before assignment")
             ))
             
         return res.success(value) 
@@ -2152,7 +2209,6 @@ class Interpreter:
         args = []
 
         value_to_call = res.Register(self.visit(node.node_to_call, context))
-        print(value_to_call)
         if  res.should_return(): return res
         value_to_call = value_to_call.copy().set_position(node.start_pos, node.end_pos)
 
@@ -2181,6 +2237,17 @@ class Interpreter:
     def visit_BreakNode(self, node, context):
         return RuntimeResult().success_break()
 
+    def visit_ListacssesNode(self,node, context):
+        res = RuntimeResult()
+        list_name = node.ident
+        list_values = context.symbol_table.get(list_name).elements
+
+        if len(list_values) < node.index:
+            return res.failure(InvalidSyntaxErorr(node.start_pos,node.end_pos,
+                                                              "List index out of range"))
+        return res.success(list_values[node.index])
+
+
 
 
 global_symbol_table = SymbolTable()
@@ -2195,15 +2262,15 @@ global_symbol_table.set("cls", BuiltInFunction.clear)
 global_symbol_table.set("is_num", BuiltInFunction.is_num)
 global_symbol_table.set("is_string", BuiltInFunction.is_string)
 global_symbol_table.set("is_list", BuiltInFunction.is_list)
-global_symbol_table.set("is_funct", BuiltInFunction.is_function)
-global_symbol_table.set("appemd", BuiltInFunction.append)
+global_symbol_table.set("is_func", BuiltInFunction.is_function)
+global_symbol_table.set("append", BuiltInFunction.append)
 global_symbol_table.set("pop", BuiltInFunction.pop)
 global_symbol_table.set("extend", BuiltInFunction.extend)
 global_symbol_table.set("Run", BuiltInFunction.Run)
 global_symbol_table.set("length", BuiltInFunction.length)
 
 
-def Run(text: str, fn: str):
+def run(text: str, fn: str):
     #generate tokens
     tokenizer = Tokenizer(text, fn)
     tokens, error =tokenizer.make_tokens()
@@ -2248,3 +2315,30 @@ def string_with_arrows(text, start_pos, end_pos):
         if idx_end < 0: idx_end = len(text)
 
     return result.replace('\t', '')
+
+
+
+if __name__ == "__main__":
+    try :
+        file_name = sys.argv[1]
+        with open(file_name,'r') as file:
+            script = str(file.read())
+
+        result , error = run(script,file_name)
+        if error:
+            print(error.as_string())
+
+            
+    except IndexError:
+        while True:
+            text = input('Hope >>>')
+            result, error = run(text, '<stdin>')
+            
+            if text.strip() == '':
+                continue
+            
+            if text == 'exit':
+                break
+            
+            if error:
+                print(error.as_string())
