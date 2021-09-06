@@ -10,7 +10,7 @@
     
 ### list declaration
     
-    let list_name = [list_elements] (use comma between elements)
+    let list_name = [list_elements] #use comma between elements
 
 ## Control-Flow
 
@@ -28,7 +28,7 @@
             do_something
     elif another_condition>>
         do_something_else 
-        (if and only if the first_conditon is not true and the 2nd is true)
+        #if and only if the first_conditon is not true and the 2nd is true
     << 
 
 
@@ -43,7 +43,7 @@
 ### inline If conditional
 
     if condition >> do_something
-    (it is possible to use elif and else control-flow in the same line like the flowing line)
+    #it is possible to use elif and else control-flow in the same line like the flowing line
     if conditon >> do_Something else do_something_else
 
 
@@ -98,7 +98,7 @@
 
 ###  inline function declaration  
 
-    func function_name(paramters) >> return_value(directly no need to use  return keyword)
+    func function_name(paramters) >> return_value #directly no need to use  return keyword
                               
                               
                               
