@@ -43,7 +43,7 @@
 ### inline If conditional
 
     if condition >> do_something
-    #it is possible to use elif and else control-flow in the same line like the flowing line
+    #it is possible to use elif and else control-flow in the same line like the following line
     if conditon >> do_Something else do_something_else
 
 
