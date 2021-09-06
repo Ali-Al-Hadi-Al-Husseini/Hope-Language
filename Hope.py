@@ -83,6 +83,11 @@ class InvalidSyntaxErorr(Error):
     def __init__(self, start_pos: int, end_pos: int, details= '') -> None:
         super().__init__(start_pos, end_pos, "Invalid Syntax", details)
 
+class Indexerror(Error):
+    def __init__(self, start_pos: int, end_pos: int, details= '') -> None:
+        super().__init__(start_pos, end_pos, "Invalid index", details)
+
+
 class RunTimeError(Error):
     def __init__(self, start_pos: int, end_pos: int, details,context) -> None:
         super().__init__(start_pos, end_pos, "Runtime Error", details)
@@ -760,7 +765,7 @@ class Parser:
 
             elif self.curr_token.type == TOKEN_LSQUARE:
                 self.Register_advacement(res)
-                if self.curr_token.type == TOKEN_INT:
+                if self.curr_token.type in (TOKEN_INT, TOKEN_IDENTIFIER):
                     index = self.curr_token
                     self.Register_advacement(res)
 
@@ -2241,11 +2246,12 @@ class Interpreter:
         res = RuntimeResult()
         list_name = node.ident
         list_values = context.symbol_table.get(list_name).elements
+        idx =  node.index if type(node.index) == int else context.symbol_table.get(node.index).value
 
-        if len(list_values) < node.index:
-            return res.failure(InvalidSyntaxErorr(node.start_pos,node.end_pos,
+        if len(list_values) <= idx:
+            return res.failure(Indexerror(node.start_pos,node.end_pos,
                                                               "List index out of range"))
-        return res.success(list_values[node.index])
+        return res.success(list_values[idx])
 
 
 
@@ -2319,8 +2325,12 @@ def string_with_arrows(text, start_pos, end_pos):
 
 
 if __name__ == "__main__":
-    try :
+    try:
         file_name = sys.argv[1]
+    except IndexError:
+        file_name = None
+    
+    if file_name is not None:
         with open(file_name,'r') as file:
             script = str(file.read())
 
@@ -2328,8 +2338,7 @@ if __name__ == "__main__":
         if error:
             print(error.as_string())
 
-            
-    except IndexError:
+    else :
         while True:
             text = input('Hope >>>')
             result, error = run(text, '<stdin>')
@@ -2342,3 +2351,4 @@ if __name__ == "__main__":
             
             if error:
                 print(error.as_string())
+
