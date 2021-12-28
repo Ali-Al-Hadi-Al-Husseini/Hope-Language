@@ -1,5 +1,5 @@
 # Hope language
-  Hope is a small programing lanuage developed by Ali Al Hadi
+  Hope is a small programing language developed by Ali Al Hadi
   it is inspired by python and javascript with a small twist
   
 ## Variable
