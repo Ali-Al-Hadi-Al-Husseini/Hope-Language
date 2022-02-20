@@ -6,6 +6,8 @@ import os
 import math
 import sys
 
+from matplotlib.pyplot import prism
+
 DIGITS        = '0123456789'
 LETTERS       = string.ascii_letters # t
 LETTER_DIGITS = LETTERS + DIGITS
@@ -869,6 +871,8 @@ class Parser:
     def Expression(self):
         res = ParserResult()
 
+        ##
+            
         if self.curr_token.matches(TOKEN_KEYWORD, "let"):
             self.Register_advacement(res)
 
@@ -1045,6 +1049,9 @@ class Parser:
     def Register_advacement(self,res):
         res.Register_advancement()
         self.advance()
+
+
+
     def ListCall_expression(self):
         res  = ParserResult()
         txt = self.curr_token.value
@@ -1219,7 +1226,7 @@ class Parser:
 
         self.Register_advacement(res)
 
-        if self.curr_token.type != TOKEN_NEWLINE:
+        if self.curr_token.type != TOKEN_NEWLINE:##
             
             body = res.Register(self.Expression())
             if  res.error:return res
@@ -1227,6 +1234,9 @@ class Parser:
             return res.Sucsses(functionDefNode(func_name_token, arg_name_tokens, body,True))
 
         self.Register_advacement(res)
+        
+        while self.curr_token.type == TOKEN_NEWLINE:
+            self.Register_advacement(res)
 
         body = res.Register(self.statments())
         if  res.error:return res
@@ -2326,7 +2336,7 @@ def string_with_arrows(text, start_pos, end_pos):
 
 if __name__ == "__main__":
     try:
-        file_name = sys.argv[1]
+        file_name = "trial.hope"  #sys.argv[1]
     except IndexError:
         file_name = None
     
