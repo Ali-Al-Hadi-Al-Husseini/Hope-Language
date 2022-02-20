@@ -2336,7 +2336,7 @@ def string_with_arrows(text, start_pos, end_pos):
 
 if __name__ == "__main__":
     try:
-        file_name = "trial.hope"  #sys.argv[1]
+        file_name = sys.argv[1]
     except IndexError:
         file_name = None
     
