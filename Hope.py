@@ -3,10 +3,8 @@
 """
 import string
 import os
-import math
 import sys
 
-from matplotlib.pyplot import prism
 
 DIGITS        = '0123456789'
 LETTERS       = string.ascii_letters # t
@@ -19,6 +17,7 @@ TOKEN_MINUS      = 'MINUS'
 TOKEN_MUL        = 'MUL'
 TOKEN_DIV        = 'DIV'
 TOKEN_POW        = 'POW'# power token 
+TOKEN_MODULE     =  'MOD'
 TOKEN_LPAREN     = 'LPAREN'
 TOKEN_RPARENT    = 'RPAREN'
 TOKEN_EQ         = 'EQ' # equals token 
@@ -37,7 +36,7 @@ TOKEN_RCURLY      = 'RCURLY'
 TOKEN_LSQUARE     = 'LSQUARE'
 TOKEN_RSQUARE     = 'RSQUARE'
 TOKEN_START       = 'UNTIL'
-TOKEN_END        = 'SKIP'
+TOKEN_END         = 'SKIP'
 TOKEN_ARROW       = 'ARROW'
 TOKEN_QUOTES      = '"'
 TOKEN_ANDSYMBOL   = "ANDSYMBOL"
@@ -210,8 +209,8 @@ class Tokenizer:
                 tokens.append(ident)
 
             elif self.current_char in ';\n':
-                tokens.append(Token(TOKEN_NEWLINE, start_pos=self.position))
-                self.advance()
+                tokens.append(self.make_newline())
+                #self.advance()
                 
             elif self.current_char in ('"', "'"):
                 tokens.append(self.make_str())
@@ -232,6 +231,10 @@ class Tokenizer:
 
             elif self.current_char == '*':
                 tokens.append(Token(TOKEN_MUL, start_pos=self.position))
+                self.advance()
+            
+            elif self.current_char == "%":
+                tokens.append(Token(TOKEN_MODULE,start_pos=self.position))
                 self.advance()
 
             elif self.current_char == '!':
@@ -298,6 +301,17 @@ class Tokenizer:
         tokens.append(Token(TOKEN_EOF, start_pos=self.position))
         return tokens, None
 
+    def make_newline(self):
+        tok = Token(TOKEN_NEWLINE, start_pos=self.position)
+        self.advance()
+        
+        if self.current_char == None : return tok
+
+        while self.current_char in "\n;":
+            self.advance()
+            if self.current_char == None : return tok
+
+        return tok 
     #checks weather a number is float or int and returns a token back with it's type
     def make_number(self):
         num_str = ''
@@ -632,7 +646,7 @@ class Parser:
         return self.curr_token
 
 
-    def parse(self, ):
+    def parse(self,):
         res= self.statments()
         if  not res.error and self.curr_token.type != TOKEN_EOF:
             return res.failure(InvalidSyntaxErorr(
@@ -648,7 +662,7 @@ class Parser:
         start_pos = self.curr_token.start_pos.copy()
 
 
-        while self.curr_token  == TOKEN_NEWLINE:
+        while self.curr_token.type  == TOKEN_NEWLINE:
             self.Register_advacement(res)
 
         stat = res.Register(self.statment())
@@ -842,7 +856,7 @@ class Parser:
         return self.power()
 
     def Term(self):
-        return self.bin_op(self.Factor, (TOKEN_MUL, TOKEN_DIV))
+        return self.bin_op(self.Factor, (TOKEN_MUL, TOKEN_DIV,TOKEN_MODULE))
     
     def arithmetic_expression(self):
         return self.bin_op(self.Term, (TOKEN_PLUS, TOKEN_MINUS))
@@ -871,8 +885,9 @@ class Parser:
     def Expression(self):
         res = ParserResult()
 
-        ##
-            
+        while self.curr_token.type  == TOKEN_NEWLINE:
+            self.Register_advacement(res)
+
         if self.curr_token.matches(TOKEN_KEYWORD, "let"):
             self.Register_advacement(res)
 
@@ -924,15 +939,15 @@ class Parser:
 
     def If_expression(self):
         res = ParserResult()
-        new_cases, else_case = res.Register(self.if_elif_maker('if'))
+        temp  = res.Register(self.if_elif_maker('if'))
         if  res.error:return res
-             
+        new_cases, else_case = temp
         return res.Sucsses(IfNode(new_cases, else_case))
 
     def if_elif_maker(self,ident):
         res = ParserResult()
         cases = []
-        else_cases = None
+        else_case = None
 
         # if ident == 'if' and not self.curr_token.matches(TOKEN_KEYWORD, ident):
         #     return res.failure(InvalidSyntaxErorr(self.curr_token.start_pos,self.curr_token.end_pos
@@ -1156,6 +1171,7 @@ class Parser:
                     self.curr_token.start_pos, self.curr_token.end_pos,
                     "Expected '<<'"
                 ))
+            self.Register_advacement(res)
             return res.Sucsses(WhileNode(condition,body_content, True))
         body_content = res.Register(self.statment())
         if  res.error: return res
@@ -1564,6 +1580,12 @@ class Number(Value):
     def multiply(self, other):
         if isinstance(other, Number):
             return Number(self.value * other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
+
+    def module(self,other):
+        if isinstance(other, Number):
+            return Number(self.value % other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self, other)
 
@@ -2047,7 +2069,10 @@ class Interpreter:
 
         elif node.operation_token.type == TOKEN_MUL:
             result, error =  left.multiply(right)
-            
+
+        elif node.operation_token.type == TOKEN_MODULE:
+            result, error = left.module(right)
+
         elif node.operation_token.type == TOKEN_DIV:
             result, error =  left.divide(right)
 
