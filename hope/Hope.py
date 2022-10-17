@@ -7,8 +7,8 @@ import sys
 
 
 DIGITS           = '0123456789'
-LETTERS          = set(list(string.ascii_letters)) # t
-LETTER_DIGITS    = set(list(string.ascii_letters + DIGITS))
+LETTERS          = string.ascii_letters # t
+LETTER_DIGITS    = string.ascii_letters + DIGITS
 TOKEN_STRING     = 'STRING'
 TOKEN_INT        = 'TOKEN_INT'
 TOKEN_FLOAT      = 'FLOAT'
