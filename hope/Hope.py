@@ -6,9 +6,9 @@ import os
 import sys
 
 
-DIGITS        = '0123456789'
-LETTERS       = string.ascii_letters # t
-LETTER_DIGITS = LETTERS + DIGITS
+DIGITS           = '0123456789'
+LETTERS          = set(list(string.ascii_letters)) # t
+LETTER_DIGITS    = set(list(string.ascii_letters + DIGITS))
 TOKEN_STRING     = 'STRING'
 TOKEN_INT        = 'TOKEN_INT'
 TOKEN_FLOAT      = 'FLOAT'
@@ -31,18 +31,18 @@ TOKEN_KEYWORD    = 'KEYWORD' # keyword that are used by the language
 TOKEN_IDENTIFIER = 'IDENTIFIER' # names that are given by the user to name variables, fucntions ...
 TOKEN_EOF        = 'EOF'
 TOKEN_COMMA      = ' COMMA'
-TOKEN_LCURLY      = 'LCURLY'
-TOKEN_RCURLY      = 'RCURLY'
-TOKEN_LSQUARE     = 'LSQUARE'
-TOKEN_RSQUARE     = 'RSQUARE'
-TOKEN_START       = 'UNTIL'
-TOKEN_END         = 'SKIP'
-TOKEN_ARROW       = 'ARROW'
-TOKEN_QUOTES      = '"'
-TOKEN_ANDSYMBOL   = "ANDSYMBOL"
-TOKEN_ORSYMBOL    = "ORSYMBOL"
-TOKEN_PYTHON      = 'PYTHON'
-TOKEN_NEWLINE     = 'NEWLINE'
+TOKEN_LCURLY     = 'LCURLY'
+TOKEN_RCURLY     = 'RCURLY'
+TOKEN_LSQUARE    = 'LSQUARE'
+TOKEN_RSQUARE    = 'RSQUARE'
+TOKEN_START      = 'UNTIL'
+TOKEN_END        = 'SKIP'
+TOKEN_ARROW      = 'ARROW'
+TOKEN_QUOTES     = '"'
+TOKEN_ANDSYMBOL  = "ANDSYMBOL"
+TOKEN_ORSYMBOL   = "ORSYMBOL"
+TOKEN_PYTHON     = 'PYTHON'
+TOKEN_NEWLINE    = 'NEWLINE'
 
 KEYWORDS = [ 
     'let',
