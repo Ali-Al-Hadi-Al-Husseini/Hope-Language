@@ -227,7 +227,7 @@ class Tokenizer:
             
             elif self.current_char == '-':
                 tokens.append(self.make_arrow())
-                self.advance()
+                
 
             elif self.current_char == '*':
                 tokens.append(Token(TOKEN_MUL, start_pos=self.position))
@@ -428,7 +428,7 @@ class Tokenizer:
         if self.current_char  == '>':
             return Token(TOKEN_ARROW, start_pos=start_pos, end_pos=self.position)
         else :
-            return Token(TOKEN_MINUS,start_pos = start_pos, end_pos=self.position)
+            return Token(TOKEN_MINUS,start_pos = start_pos)
 
 
 
