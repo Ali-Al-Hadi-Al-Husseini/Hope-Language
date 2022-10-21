@@ -6,9 +6,9 @@ import os
 import sys
 
 
-DIGITS        = '0123456789'
-LETTERS       = string.ascii_letters # t
-LETTER_DIGITS = LETTERS + DIGITS
+DIGITS           = '0123456789'
+LETTERS          = string.ascii_letters # t
+LETTER_DIGITS    = string.ascii_letters + DIGITS
 TOKEN_STRING     = 'STRING'
 TOKEN_INT        = 'TOKEN_INT'
 TOKEN_FLOAT      = 'FLOAT'
@@ -31,18 +31,18 @@ TOKEN_KEYWORD    = 'KEYWORD' # keyword that are used by the language
 TOKEN_IDENTIFIER = 'IDENTIFIER' # names that are given by the user to name variables, fucntions ...
 TOKEN_EOF        = 'EOF'
 TOKEN_COMMA      = ' COMMA'
-TOKEN_LCURLY      = 'LCURLY'
-TOKEN_RCURLY      = 'RCURLY'
-TOKEN_LSQUARE     = 'LSQUARE'
-TOKEN_RSQUARE     = 'RSQUARE'
-TOKEN_START       = 'UNTIL'
-TOKEN_END         = 'SKIP'
-TOKEN_ARROW       = 'ARROW'
-TOKEN_QUOTES      = '"'
-TOKEN_ANDSYMBOL   = "ANDSYMBOL"
-TOKEN_ORSYMBOL    = "ORSYMBOL"
-TOKEN_PYTHON      = 'PYTHON'
-TOKEN_NEWLINE     = 'NEWLINE'
+TOKEN_LCURLY     = 'LCURLY'
+TOKEN_RCURLY     = 'RCURLY'
+TOKEN_LSQUARE    = 'LSQUARE'
+TOKEN_RSQUARE    = 'RSQUARE'
+TOKEN_START      = 'UNTIL'
+TOKEN_END        = 'SKIP'
+TOKEN_ARROW      = 'ARROW'
+TOKEN_QUOTES     = '"'
+TOKEN_ANDSYMBOL  = "ANDSYMBOL"
+TOKEN_ORSYMBOL   = "ORSYMBOL"
+TOKEN_PYTHON     = 'PYTHON'
+TOKEN_NEWLINE    = 'NEWLINE'
 
 KEYWORDS = [ 
     'let',
@@ -227,7 +227,7 @@ class Tokenizer:
             
             elif self.current_char == '-':
                 tokens.append(self.make_arrow())
-                self.advance()
+                
 
             elif self.current_char == '*':
                 tokens.append(Token(TOKEN_MUL, start_pos=self.position))
@@ -428,7 +428,7 @@ class Tokenizer:
         if self.current_char  == '>':
             return Token(TOKEN_ARROW, start_pos=start_pos, end_pos=self.position)
         else :
-            return Token(TOKEN_MINUS,start_pos = start_pos, end_pos=self.position)
+            return Token(TOKEN_MINUS,start_pos = start_pos)
 
 
 
@@ -1445,7 +1445,7 @@ class String(Value):
             return None, Value.illegal_operation(self,other)
 
     def addition(self, other):
-        return String(str(str(self.value) + str(other.value))).set_context(self.context), None
+        return String(self.value + str(other.value)).set_context(self.context), None
 
 
     def change_to(self,char, by_this):
