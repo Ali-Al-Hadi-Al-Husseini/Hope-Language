@@ -14,7 +14,9 @@ class TestVariables(unittest.TestCase):
             ("""print(9 / 3  + 1)""",["4.0"] , None), 
             ("""print(6 / 3  + 2 )""",["4.0"] , None),
             ("""print(9 / 3  * 2 )""",["6.0"] , None),
-
+            ("""print(9 / 3  - 1)""",["2.0"] , None), 
+            ("""print(6 / 3  - 2 )""",["0.0"] , None),
+            ("""print(9 / 3  * -2 )""",["-6.0"] , None),
         ]
         for code, expected_result, expected_error in test_Cases_success:
             result , error = run(code,"test.hope")
