@@ -1,5 +1,5 @@
 import unittest
-from .hope import run ,RunTimeError
+from .hope import run
 
 class TestVariables(unittest.TestCase):
 

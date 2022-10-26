@@ -1,14 +1,14 @@
 """ HOPE
 
 """
-import string
+from string import ascii_letters
 import os
 import sys
 
 
 DIGITS           = '0123456789'
-LETTERS          = string.ascii_letters # t
-LETTER_DIGITS    = string.ascii_letters + DIGITS
+LETTERS          = set(ascii_letters) # t
+LETTER_DIGITS    = set(ascii_letters + DIGITS)
 TOKEN_STRING     = 'STRING'
 TOKEN_INT        = 'TOKEN_INT'
 TOKEN_FLOAT      = 'FLOAT'
@@ -348,7 +348,7 @@ class Tokenizer:
         id_str = ''
         start_pos = self.position.copy()
 
-        while self.current_char != None and self.current_char in LETTER_DIGITS + '_':
+        while self.current_char != None and self.current_char in LETTER_DIGITS or self.current_char == '_':
             id_str += self.current_char
             self.advance()
 
