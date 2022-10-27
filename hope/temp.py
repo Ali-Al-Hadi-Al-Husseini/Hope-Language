@@ -1,5 +1,7 @@
 from Hope import run,InvalidSyntaxErorr
 
 
-x ,err = run("""3-7;""",'hola.hope')
+x ,err = run("""for i= 1 -> 5 >>
+                print(i) ;
+                <<      """,'hola.hope')
 print(x,err)

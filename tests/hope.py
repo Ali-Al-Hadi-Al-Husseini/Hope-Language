@@ -1,14 +1,14 @@
 """ HOPE
 
 """
-import string
+from string import ascii_letters
 import os
 import sys
 
 
 DIGITS           = '0123456789'
-LETTERS          = string.ascii_letters # t
-LETTER_DIGITS    = string.ascii_letters + DIGITS
+LETTERS          = set(ascii_letters) # t
+LETTER_DIGITS    = set(ascii_letters + DIGITS)
 TOKEN_STRING     = 'STRING'
 TOKEN_INT        = 'TOKEN_INT'
 TOKEN_FLOAT      = 'FLOAT'
@@ -44,7 +44,7 @@ TOKEN_ORSYMBOL   = "ORSYMBOL"
 TOKEN_PYTHON     = 'PYTHON'
 TOKEN_NEWLINE    = 'NEWLINE'
 
-KEYWORDS = [ 
+KEYWORDS = set([ 
     'let',
     'and',
     'or',
@@ -61,7 +61,7 @@ KEYWORDS = [
     'continue',
     'skip',
     'run'
-]
+])
 
 # this class is made for other claases to inherit from 
 class Error:
@@ -318,7 +318,7 @@ class Tokenizer:
         dot_count = 0
         start_pos = self.position.copy()
 
-        while self.current_char != None and self.current_char in DIGITS + '.':
+        while self.current_char != None and self.current_char in DIGITS or self.current_char ==  '.':
             if self.current_char == '.':
                 if dot_count == 1:
                     break
@@ -348,7 +348,7 @@ class Tokenizer:
         id_str = ''
         start_pos = self.position.copy()
 
-        while self.current_char != None and self.current_char in LETTER_DIGITS + '_':
+        while self.current_char != None and self.current_char in LETTER_DIGITS or self.current_char == '_':
             id_str += self.current_char
             self.advance()
 
@@ -426,6 +426,7 @@ class Tokenizer:
         self.advance()
 
         if self.current_char  == '>':
+            self.advance()
             return Token(TOKEN_ARROW, start_pos=start_pos, end_pos=self.position)
         else :
             return Token(TOKEN_MINUS,start_pos = start_pos)
@@ -1106,7 +1107,7 @@ class Parser:
         self.Register_advacement(res) 
 
         end_poniter = res.Register(self.Expression())
-        if  res.error: return Error
+        if  res.error: return res
         skip_value = None
         if self.curr_token.matches(TOKEN_KEYWORD,'skip'):
             self.Register_advacement(res)
