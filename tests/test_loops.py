@@ -8,7 +8,7 @@ class TestVariables(unittest.TestCase):
             ("""for i= 1 -> 5 >> print(i)""",[['1', "2", "3", "4"]] , None),
             ("""let i = 0; while i < 10 >>; print(i); i = i + 1 ;<< ; print(i)""",[0, 0, "10"] , None),
             ("""for i= 1 -- 5 >> print(i) """, None , InvalidSyntaxErorr)  ,
-            ("""let i=0; while i < 5 >> ; print(i) ; i = 1 + i ;<< """,  [0, 0] , None),
+            ("""let i=0; while i < 5 >> ; print(i) ; i = 1 + i ;<< ; print(i == 4)""",  [0, 0,"0"] , None),
         ]
 
         for code, expected_result, expected_error in test_Cases:
