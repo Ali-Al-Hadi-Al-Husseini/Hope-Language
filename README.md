@@ -40,7 +40,7 @@
         do_something_else
     << 
 
-### inline If conditional
+### Inline If conditional
 
     if condition >> do_something
     #it is possible to use elif and else control-flow in the same line like the following line
