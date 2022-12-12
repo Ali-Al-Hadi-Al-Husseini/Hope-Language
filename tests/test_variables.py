@@ -6,7 +6,7 @@ class TestVariables(unittest.TestCase):
     def test_variables(self):
         test_Cases_success = [
             ("""let x = 0; print(x+1)""",[0,"1"] , None),
-            ("""let x = "test_case"; print(x+" hello")""",["test_case",'"test_case hello"'] , None),
+            ("""let x = "test_case"; print(x + " hello")""",["test_case",'"test_case hello"'] , None),
             ("""let x = 17; print(x*2 + 7 / 3 - 8)""", [17, "28.333333333333336"], None),
             ("""let x = abc; print(x+1)""" ,None, RunTimeError),
             ("""let x = 1; print(abc+1)""" ,None, RunTimeError)    

@@ -6,9 +6,9 @@ import os
 import sys
 
 
-DIGITS           = '0123456789'
-LETTERS          = set(ascii_letters) # t
-LETTER_DIGITS    = set(ascii_letters + DIGITS)
+DIGITS           = ('0123456789')
+LETTERS          = (ascii_letters) # t
+LETTER_DIGITS    = (ascii_letters + '0123456789')
 TOKEN_STRING     = 'STRING'
 TOKEN_INT        = 'TOKEN_INT'
 TOKEN_FLOAT      = 'FLOAT'
@@ -44,7 +44,7 @@ TOKEN_ORSYMBOL   = "ORSYMBOL"
 TOKEN_PYTHON     = 'PYTHON'
 TOKEN_NEWLINE    = 'NEWLINE'
 
-KEYWORDS = set([ 
+KEYWORDS = ([ 
     'let',
     'and',
     'or',
@@ -2311,23 +2311,42 @@ global_symbol_table.set("extend", BuiltInFunction.extend)
 global_symbol_table.set("Run", BuiltInFunction.Run)
 global_symbol_table.set("length", BuiltInFunction.length)
 
+import time 
 
 def run(text: str, fn: str):
     #generate tokens
+    times = {}
+    start = time.time()
+
     tokenizer = Tokenizer(text, fn)
     tokens, error =tokenizer.make_tokens()
+
+    end = time.time()
+    times['tok'] = end - start
+
     if error:return None, error
     # generate Ast
+    start = time.time()
+
     parser = Parser(tokens)
     ast = parser.parse() # abstract syntax tree
+
+    end = time.time()
+    times['par'] = end - start
     if ast.error :return None, ast.error
+
+    start = time.time()
     
     interpreter = Interpreter()
     context = Context("<module>")
     context.symbol_table = global_symbol_table
     result = interpreter.visit(ast.node, context)
+
+    end = time.time()
+    times['int'] = end - start
     
-    return result.value, result.error
+    return result.value, result.error,times
+
 
 # this is not my code 
 def string_with_arrows(text, start_pos, end_pos):
