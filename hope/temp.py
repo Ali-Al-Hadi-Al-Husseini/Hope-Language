@@ -37,13 +37,13 @@
 
 # wind = turtle.Screen()
 # wind.title('CTXGO')
-# wind.bgcolor('green')
+# wind.bgcolor('black')
 # wind.setup(width=800, height=600)
 # wind.tracer(0)
 # # Bar A
 # bar_A = turtle.Turtle()
 # bar_A.shape('square')
-# bar_A.color('black')
+# bar_A.color('white')
 # bar_A.shapesize(stretch_wid=5, stretch_len=1)
 # bar_A.penup()
 # bar_A.goto(-350,0)
@@ -51,7 +51,7 @@
 # # Bar B
 # bar_B = turtle.Turtle()
 # bar_B.shape('square')
-# bar_B.color('black')
+# bar_B.color('white')
 # bar_B.shapesize(stretch_wid=5, stretch_len=1)
 # bar_B.penup()
 # bar_B.goto(350,0)
@@ -59,7 +59,7 @@
 # # Ball
 # ball = turtle.Turtle()
 # ball.shape('circle')
-# ball.color('black')
+# ball.color('white')
 # ball.penup()
 # ball.goto(0,0)
 # ball_x = 0.1
@@ -88,7 +88,7 @@
 #     y -= 30
 #     bar_A.sety(y)
 # def bar_B_up():
-#     y = bar_B.ycor()
+#     y = get_y('bar_b')
 #     y += 30
 #     bar_B.sety(y)
 # def bar_B_down():
@@ -105,44 +105,45 @@
 # wind.onkeypress(bar_B_up, 'Up')
 # wind.onkeypress(bar_B_down, 'Down')
 
-
+# while True:
+#     wind.update()
 # while True:
 #     wind.update()
 
-#     # BAll movement
-#     ball.setx(ball.xcor() + ball_x)
-#     ball.sety(ball.ycor() + ball_y)
+    # # BAll movement
+    # ball.setx(ball.xcor() + ball_x)
+    # ball.sety(ball.ycor() + ball_y)
 
-#     # Border
-#     if ball.ycor() > 290:
-#         ball.sety(290)
-#         ball_y *= -1
-#     elif ball.ycor() < -290:
-#         ball.sety(-290)
-#         ball_y *= -1
+    # # Border
+    # if ball.ycor() > 290:
+    #     ball.sety(290)
+    #     ball_y *= -1
+    # elif ball.ycor() < -290:
+    #     ball.sety(-290)
+    #     ball_y *= -1
 
-#     #score
-#     if ball.xcor() > 350:
-#         score_a += 1
-#         sboard.clear()
-#         sboard.write("Player A: {} Player B {}".format(score_a, score_b), align='center', font=('Courier', 24, 'normal'))
-#         ball.goto(0,0)
-#         ball_x *= -1
+    # #score
+    # if ball.xcor() > 350:
+    #     score_a += 1
+    #     sboard.clear()
+    #     sboard.write("Player A: {} Player B {}".format(score_a, score_b), align='center', font=('Courier', 24, 'normal'))
+    #     ball.goto(0,0)
+    #     ball_x *= -1
 
-#     elif ball.xcor() < -350:
-#         score_b += 1
-#         sboard.clear()
-#         sboard.write("Player A: {} Player B {}".format(score_a, score_b), align='center',
-#                      font=('Courier', 24, 'normal'))
-#         ball.goto(0, 0)
-#         ball_x *= -1
+    # elif ball.xcor() < -350:
+    #     score_b += 1
+    #     sboard.clear()
+    #     sboard.write("Player A: {} Player B {}".format(score_a, score_b), align='center',
+    #                  font=('Courier', 24, 'normal'))
+    #     ball.goto(0, 0)
+    #     ball_x *= -1
 
 
-#     # Collision with bars
-#     if ball.xcor() < -340 and ball.ycor() < bar_A.ycor() + 50 and ball.ycor() > bar_A.ycor() - 50:
-#         ball_x *= -1
-#     elif ball.xcor() > 340 and ball.ycor() < bar_B.ycor() + 50 and ball.ycor() > bar_B.ycor() - 50:
-#         ball_x *= -1
+    # # Collision with bars
+    # if ball.xcor() < -340 and ball.ycor() < bar_A.ycor() + 50 and ball.ycor() > bar_A.ycor() - 50:
+    #     ball_x *= -1
+    # elif ball.xcor() > 340 and ball.ycor() < bar_B.ycor() + 50 and ball.ycor() > bar_B.ycor() - 50:
+    #     ball_x *= -1
 
 from Interpreter_tools.Interpreter import run
 
@@ -170,41 +171,60 @@ let score_a = 0
 let score_b = 0
 
 
-# Functions
-func bar_A_up() >>
-    let y = get_y('bar_a')
-    y = 30 + y 
-    set_y('bar_a',y)
-    <<
-func bar_A_down() >>
-    let y = get_y('bar_a')
-    y = y - 30 
-    set_y('bar_a',y)
-    <<
-
-func bar_B_up() >>
-    let y = get_y('bar_b')
-    y = y + 30 
-    set_y('bar_b',y)
-    <<
-
-func bar_B_down() >>
-    let y = get_y('bar_b')
-    y = y - 30 
-    set_y('bar_b',y)
-    <<
-
-
 # Keyboard Bindings
 start_windows_listen('windows')
-# add_key_press_event('windows',bar_A_up, 'w')
-# add_key_press_event('windows',bar_A_down, 's')
-# add_key_press_event('windows',bar_B_up, 'Up')
-# add_key_press_event('windows',bar_B_down, 'Down')
+add_key_press_event('windows','bar_a','up', 'w')
+add_key_press_event('windows','bar_a','down', 's')
+add_key_press_event('windows','bar_b','up', 'Up')
+add_key_press_event('windows','bar_b','down', 'Down')
 
-while true >> windows_update('windows') 
 
+
+
+while true >> 
+    windows_update('windows') 
+
+    # BAll movement
+    set_x('ball',get_x('ball') + ball_x)
+    set_y('ball',get_y('ball') + ball_y)
+
+    # Border
+    if get_y('ball') > 290 >>
+        set_y('ball',290)
+        ball_y = ball_y * -1 
+        
+    elif get_y('ball') < -290 >>
+
+        set_y('ball',-290)
+        ball_y = ball_y * -1 
+    <<
+
+    #score
+    if get_x('ball') > 350 >>
+        score_a = score_a + 1
+        clear_shape('sboard')
+        write_shape(format("Player A: {} Player B {}",[score_a,score_b]))
+        shape_goto('ball',0,0)
+        ball_x = ball_x * -1 
+
+    elif get_x('ball') < -350 >>
+        score_b = score_b +  1
+        clear_shape('sboard')
+        write_shape(format("Player A: {} Player B {}",[score_a,score_b]) )
+        shape_goto('ball',0,0)
+        ball_x = ball_x * -1 
+
+    <<
+
+    # Collision with barsbar_A
+    if get_x('ball') < -340 and get_y('ball') < get_y('bar_a') + 50 and get_y('ball') > get_y('bar_a') - 50 >>
+        ball_x = ball_x * -1 
+    elif get_x('ball') > 340 and get_y('ball') < get_y('bar_b') + 50 and get_y('ball') > get_y('bar_b') - 50 >>
+        ball_x = ball_x * -1 
+    <<
+<<
 
 """,'hp.hope')
 
 print(a)
+

@@ -1,0 +1,78 @@
+# generateing main window
+generate_windows('windows','Pong','black',800,600,0)
+
+# Bar A
+generate_shape('bar_a','square','white',5,1,-350,0,false,'')
+
+# Bar B
+generate_shape('bar_b','square','white',5,1,350,0,false,'')
+
+# Ball
+generate_shape('ball','circle','white',0,0,0,0,false,'')
+
+let ball_x = 0.4
+let ball_y = 0.4
+
+#score
+generate_shape('sboard','square','white',0,0,0,260,true,"Player A: 0 Player B: 0")
+
+let score_a = 0
+let score_b = 0
+
+
+# Keyboard Bindings
+start_windows_listen('windows')
+add_key_press_event('windows','bar_a','up', 'w')
+add_key_press_event('windows','bar_a','down', 's')
+add_key_press_event('windows','bar_b','up', 'Up')
+add_key_press_event('windows','bar_b','down', 'Down')
+
+
+
+
+while true >> 
+    windows_update('windows') 
+
+    # BAll movement
+    set_x('ball',get_x('ball') + ball_x)
+    set_y('ball',get_y('ball') + ball_y)
+
+    # Border
+    if get_y('ball') > 290 >>
+        set_y('ball',290)
+        ball_y = ball_y * -1 
+        
+    elif get_y('ball') < -290 >>
+
+        set_y('ball',-290)
+        ball_y = ball_y * -1 
+    <<
+
+    #score
+    if get_x('ball') > 350 >>
+        score_a = score_a + 1
+        clear_shape('sboard')
+        write_shape('sboard',format("Player A: {} Player B {}",[score_a,score_b]))
+        shape_goto('ball',0,0)
+        ball_x = ball_x * -1 
+        let ball_x = 0.4
+        let ball_y = 0.4
+
+    elif get_x('ball') < -350 >>
+        score_b = score_b +  1
+        clear_shape('sboard')
+        write_shape('sboard',format("Player A: {} Player B {}",[score_a,score_b]) )
+        shape_goto('ball',0,0)
+        ball_x = ball_x * -1 
+        
+        let ball_x = 0.4
+        let ball_y = 0.4
+    <<
+
+    # Collision with barsbar_A
+    if get_x('ball') < -340 and get_y('ball') < get_y('bar_a') + 50 and get_y('ball') > get_y('bar_a') - 50 >>
+        ball_x = ball_x * -1.1
+    elif get_x('ball') > 340 and get_y('ball') < get_y('bar_b') + 50 and get_y('ball') > get_y('bar_b') - 50 >>
+        ball_x = ball_x * -1.1
+    <<
+<<
