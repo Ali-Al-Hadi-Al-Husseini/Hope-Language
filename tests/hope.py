@@ -806,7 +806,7 @@ class Parser:
                 return res.Sucsses(expr)
             else:
                 return res.failure(InvalidSyntaxErorr(
-                    self.curr_token.star_pos, self.curr_token.end_pos, 
+                    self.curr_token.start_pos, self.curr_token.end_pos, 
                     "Expected ')' "
                 ))
 
@@ -2345,7 +2345,7 @@ def run(text: str, fn: str):
     end = time.time()
     times['int'] = end - start
     
-    return result.value, result.error,times
+    return result.value, result.error #,times
 
 
 # this is not my code 

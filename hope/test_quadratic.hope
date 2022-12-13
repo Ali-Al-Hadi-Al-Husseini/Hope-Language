@@ -1,0 +1,10 @@
+func get_solution_1 (a,b,c) >> ((-b + ((b ^ 2) - (4 * a * c)) ^ (0.5) ) / (2 * a))
+func get_solution_2 (a,b,c) >> ((-b - ((b ^ 2) - (4 * a * c)) ^ (0.5) ) / (2 * a)) 
+
+
+let a = input_int('Coefficient of x ^ 2  :')
+let b = input_int('Coefficient of x ^ 1  :')
+let c = input_int('Coefficient of constant  :')
+
+print(format('the first solution is : {}',[get_solution_1(a,b,c)]))
+print(format('the second solution is : {}',[get_solution_2(a,b,c)]))
