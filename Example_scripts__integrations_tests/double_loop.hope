@@ -1,0 +1,5 @@
+print('hello World!')
+
+for i = 1 -> 5 >> 
+    for i = 1 -> 6 >> print(i +1 )
+<<

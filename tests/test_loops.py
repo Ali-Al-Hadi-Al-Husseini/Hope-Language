@@ -1,5 +1,5 @@
 import unittest
-from hope import run,InvalidSyntaxErorr, List
+from .hope import run,InvalidSyntaxErorr, List
 
 class TestVariables(unittest.TestCase):
 
