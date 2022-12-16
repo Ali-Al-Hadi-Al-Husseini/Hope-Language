@@ -2279,16 +2279,25 @@ class Interpreter:
         return RuntimeResult().success_break()
 
     def visit_ListacssesNode(self,node, context):
+
         res = RuntimeResult()
         list_name = node.ident
-        list_values = context.symbol_table.get(list_name).elements
+        list_values = context.symbol_table.get(list_name)
         idx =  node.index if type(node.index) == int else context.symbol_table.get(node.index).value
+        if isinstance(list_values,List):
 
-        if len(list_values) <= idx:
-            return res.failure(Indexerror(node.start_pos,node.end_pos,
-                                                              "List index out of range"))
-        return res.success(list_values[idx])
-
+            if len(list_values.elements) <= idx:
+                return res.failure(Indexerror(node.start_pos,node.end_pos,
+                                                                "List index out of range"))
+            return res.success(list_values.elements[idx])
+        
+        elif isinstance(list_values,String):
+            if len(list_values.value) <= idx:
+                return res.failure(Indexerror(node.start_pos,node.end_pos,
+                                                                "List index out of range"))
+            return res.success(String(list_values.value[idx]))
+        return res.failure(SyntaxError(node.start_pos,node.end_pos,
+                                                                f"{type(list_values)} is not subscriptable"))
 
 
 
