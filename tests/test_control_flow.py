@@ -1,9 +1,9 @@
 import unittest
-from .hope import run,InvalidSyntaxErorr, List
+from Hope import *
 
-class TestVariables(unittest.TestCase):
+class TestControlFlow(unittest.TestCase):
 
-    def test_variables(self):
+    def test_control_flow(self):
         test_Cases = [
             ("""if true >> print('i')""",'"i"' , None),
             ("""if false >> print(1)""", 0 , None),

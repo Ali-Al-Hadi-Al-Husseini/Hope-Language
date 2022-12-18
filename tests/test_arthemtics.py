@@ -1,9 +1,10 @@
 import unittest
-from .hope import run
+from pythonfy import convert_from_hope_to_python_objects
+from Hope import *
 
-class TestVariables(unittest.TestCase):
+class TestArthemtics(unittest.TestCase):
 
-    def test_variables(self):
+    def test_arthemtics(self):
         test_Cases_success = [
             ("""print(2+1)""",["3"] , None),
             ("""print(-2+1)""",["-1"] , None),
@@ -20,19 +21,16 @@ class TestVariables(unittest.TestCase):
         ]
         for code, expected_result, expected_error in test_Cases_success:
             result , error = run(code,"test.hope")
-            print(code)
-            for idx in range(len(expected_result) if expected_result != None else 0):
-         
-                value_result  = result.elements[idx].value
-                expected_value_result = expected_result[idx]
-
-                self.assertEqual(value_result,expected_value_result)
+            
+            self.assertEqual(convert_from_hope_to_python_objects(result), expected_result)
 
             if error is not None:
                 self.assertTrue(isinstance(error,expected_error))
             else:
                 self.assertEqual(error,expected_error)
-           
 
 
 
+
+if __name__ == '__main__':
+    unittest.main()

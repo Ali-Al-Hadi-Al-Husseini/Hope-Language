@@ -1,9 +1,9 @@
 import unittest
-from .hope import run,InvalidSyntaxErorr, List
+from Hope import *
 
-class TestVariables(unittest.TestCase):
+class TestFunctions(unittest.TestCase):
 
-    def test_variables(self):
+    def test_Functions(self):
         test_Cases = [
             (""" func add(a,b) >>  a + b
 

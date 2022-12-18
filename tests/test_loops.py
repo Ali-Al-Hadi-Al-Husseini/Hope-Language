@@ -1,9 +1,9 @@
 import unittest
-from .hope import run,InvalidSyntaxErorr, List
+from Hope import *
 
-class TestVariables(unittest.TestCase):
+class TestLoops(unittest.TestCase):
 
-    def test_variables(self):
+    def test_loops(self):
         test_Cases = [
             ("""for i= 1 -> 5 >> print(i)""",[['1', "2", "3", "4"]] , None),
             ("""let i = 0; while i < 10 >>; print(i); i = i + 1 ;<< ; print(i)""",[0, 0, "10"] , None),

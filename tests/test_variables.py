@@ -1,5 +1,5 @@
 import unittest
-from hope import run ,RunTimeError
+from Hope import *
 
 class TestVariables(unittest.TestCase):
 
@@ -28,6 +28,5 @@ class TestVariables(unittest.TestCase):
 
 
 
-if __name__ == "__main__":
-    a = run("""let a = 1;a[1] """,'asd.hope')
-    print(a)
+if __name__ == '__main__':
+    unittest.main()
