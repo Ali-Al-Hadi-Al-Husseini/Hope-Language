@@ -6,13 +6,56 @@
 """
 
 from Hope import * 
-def convert_from_hope_to_python_objects(object):
-    if not isinstance(object,List): return object.value
-    result = []
 
-    for element in object.elements:
-        result.append(convert_from_hope_to_python_objects(element))
+def remove_quotes(string):
+    return string[1:-1]
+
+
+
+def convert_from_hope_to_python_objects(object):
+    if hasattr(object,'value'):
+        if isinstance(object,String):
+            if "'" in object.value or '"' in object.value:
+                return remove_quotes(object.value)
+            else:
+                return object.value
+
+        if '.' in str(object.value): 
+            return float(object.value)
+
+        return int(object.value)
     
-    return result
+    if isinstance(object,(List,list)) or hasattr(object,'elements'):
+        result = []
+        elements = object.elements  if hasattr(object,'elements') else object
+
+        for element in elements:
+            result.append(convert_from_hope_to_python_objects(element))
+        
+        if type(object) == list:
+            return result if len(result) > 1 else result[0]
+        return result
     
+    return object
+
+def matches(result,Expected_result):
+    if result is None:
+        if Expected_result is None:
+            return True
+        return False
+
+    result = convert_from_hope_to_python_objects(result)
+    if len(result) != len(Expected_result) : return False
+
+    for idx,expected_result_element in enumerate(Expected_result):
+        result_element = result[idx]
+
+        if type(expected_result_element) == type:
+            if not isinstance(result_element,expected_result_element):
+                return False
+                
+        elif expected_result_element != result_element:
+            return False
     
+    return True
+

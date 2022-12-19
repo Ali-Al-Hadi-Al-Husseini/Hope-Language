@@ -1,5 +1,7 @@
 import unittest
+
 from Hope import *
+from Hope import List,String,Number
 
 class TestVariables(unittest.TestCase):
 

@@ -1,23 +1,25 @@
 import unittest
+
 from Hope import *
+from Hope import List,String,Number
+
+from pythonfy import matches,convert_from_hope_to_python_objects
 
 class TestFunctions(unittest.TestCase):
 
     def test_Functions(self):
         test_Cases = [
             (""" func add(a,b) >>  a + b
-
                 let z = add(1,2)   
-                """,3,None),
+                """,[Function, 3],None),
             ("""let add =  func (a,b) >>  a + b
-
                 let z = add(1,2)   
-                """,3,None),
+                """,[Function, 3],None),
             ("""let add =  func (a,b) >> 
                 return a + b
                 <<
                 let z = add(1,2)   
-                """,3,None),
+                """,[Function, 3],None),
             ("""func add (a,b) >> 
 
                     if a > b >>
@@ -27,13 +29,13 @@ class TestFunctions(unittest.TestCase):
                     <<
                 <<
                 let z = add(1,2)   
-                """,2,None),
+                """,[Function, 2],None),
         ]
 
         for code, expected_result, expected_error in test_Cases:
             result , error = run(code,"test.hope")
-            
-            self.assertEqual(result.elements[1].value,expected_result)
+
+            self.assertTrue(matches(result,expected_result))
             self.assertEqual(error,expected_error)
            
 

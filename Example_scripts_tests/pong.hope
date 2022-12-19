@@ -40,30 +40,30 @@ while true >>
     # Border
     if get_y('ball') > 290 >>
         set_y('ball',290)
-        ball_y = ball_y * -1 
+        ball_y *= -1 
         
     elif get_y('ball') < -290 >>
 
         set_y('ball',-290)
-        ball_y = ball_y * -1 
+        ball_y *=  -1 
     <<
 
     #score
     if get_x('ball') > 350 >>
-        score_a = score_a + 1
+        score_a += 1
         clear_shape('sboard')
         write_shape('sboard',format("Player A: {} Player B {}",[score_a,score_b]))
         shape_goto('ball',0,0)
-        ball_x = ball_x * -1 
+        ball_x *= -1 
         let ball_x = 0.4
         let ball_y = 0.4
 
     elif get_x('ball') < -350 >>
-        score_b = score_b +  1
+        score_b +=  1
         clear_shape('sboard')
         write_shape('sboard',format("Player A: {} Player B {}",[score_a,score_b]) )
         shape_goto('ball',0,0)
-        ball_x = ball_x * -1 
+        ball_x *= -1 
         
         let ball_x = 0.4
         let ball_y = 0.4
@@ -71,8 +71,8 @@ while true >>
 
     # Collision with barsbar_A
     if get_x('ball') < -340 and get_y('ball') < get_y('bar_a') + 50 and get_y('ball') > get_y('bar_a') - 50 >>
-        ball_x = ball_x * -1.1
+        ball_x *= -1.1
     elif get_x('ball') > 340 and get_y('ball') < get_y('bar_b') + 50 and get_y('ball') > get_y('bar_b') - 50 >>
-        ball_x = ball_x * -1.1
+        ball_x *= -1.1
     <<
 <<

@@ -1,5 +1,5 @@
-from Interpreter_tools.Types import List
-from Interpreter_tools.Interpreter import run
+from Interpreter_tools.Interpreter import run,Function
 from Errors_tools.Errors import *
+from Interpreter_tools.Types import String,Number,List
 
-__all__ = ['List','run','IllegalCharError','InvalidSyntaxErorr','Indexerror','RunTimeError','ExpectedCharError']
+__all__ = ['run','IllegalCharError','InvalidSyntaxErorr','Indexerror','RunTimeError','ExpectedCharError','Function']  + ['List','String','Number']
