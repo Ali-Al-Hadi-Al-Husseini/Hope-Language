@@ -13,12 +13,23 @@ class TestLoops(unittest.TestCase):
             ("""for i= 1 -> 5 >> let a = i """,[[1, 2, 3, 4]] , None),
             ("""for i= 1 -- 5 >> print(i) """, None , InvalidSyntaxErorr)  ,
             ("""let i = 0
-                while i < 10 >>
-                    print(i)
-                    i = i + 1 
+                while i < 5 >> i +=  1
+                print(i)
+                """,[0,[1,2,3,4,5], "5"] , None),
+            ("""let i = 0
+                while i < 10 >> 
+                    i +=  1
+                    if i == 5  >> break
                 <<
                 print(i)
-                """,[] , None),
+                """,[0, 0,"5"] , None),
+            ("""let counter = 0
+                for i = 0 -> 10 >>
+                    if i == 5 | i == 7 >> continue
+                    counter += 1
+                <<
+                print(counter)
+                """,[0,0,"8"] , None),
             ("""let i=0
                 while i < 5 >>
                     print(i) 

@@ -23,17 +23,17 @@ class TestArthemtics(unittest.TestCase):
             ("(6 / 3  - 2 )",[0.0] , None),
             ("(9 / 3  * -2 )",[-6.0] , None),
             ("((9 / 3)  * 0 )",[0.0] , None),
-            ("((9 / 3) / 0 )",[None] , RunTimeError),
-            (""" 'abc' * 'xyz """,[None] , RunTimeError),
+            ("((9 / 3) / 0 )",[] , RunTimeError),
+            (""" 'abc' * 'xyz """,[] , RunTimeError),
 
         ]
 
         for code, expected_result, expected_error in test_cases_success:
             result , error = run(code,"test.hope")
 
-            if result != [None] :
-                result = convert_from_hope_to_python_objects(result)
-                self.assertEqual(result, expected_result)
+
+            result = convert_from_hope_to_python_objects(result)
+            self.assertEqual(result, expected_result)
 
             if error is not None:        
                 self.assertTrue(isinstance(error,expected_error))

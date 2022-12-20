@@ -7,10 +7,13 @@
 
 from Hope import * 
 
-def remove_quotes(string):
+
+def make_tokens(string: str):
+    strings = string.split(":")
+    print(strings)
+    
+def remove_quotes(string: str):
     return string[1:-1]
-
-
 
 def convert_from_hope_to_python_objects(object):
     if hasattr(object,'value'):
@@ -32,19 +35,21 @@ def convert_from_hope_to_python_objects(object):
         for element in elements:
             result.append(convert_from_hope_to_python_objects(element))
         
-        if type(object) == list:
-            return result if len(result) > 1 else result[0]
+        if type(object) == list and len(result) == 1:
+                return result[0]
+
         return result
     
     return object
 
 def matches(result,Expected_result):
+    result = convert_from_hope_to_python_objects(result)
     if result is None:
         if Expected_result is None:
             return True
         return False
 
-    result = convert_from_hope_to_python_objects(result)
+
     if len(result) != len(Expected_result) : return False
 
     for idx,expected_result_element in enumerate(Expected_result):
