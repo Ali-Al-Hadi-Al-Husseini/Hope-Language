@@ -13,7 +13,7 @@ class TestArthemtics(unittest.TestCase):
             tokenizer = Tokenizer(code, "temp")
 
             tokens, error = tokenizer.make_tokens()    
-            self.assertEquals(expected_result,[str(tok) for tok in tokens])
+            self.assertEqual(expected_result,[str(tok) for tok in tokens])
 
 
 if __name__ == "__main__":

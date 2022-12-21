@@ -1,0 +1,14 @@
+took {end - start} for {idx} and {(end - start) / idx} for each on average with set
+took 70.17655348777771 for 17001 and 0.004127789746942986 for each on average without set
+took 65.81391072273254 for 17001 and 0.0038711787967021082 for each on average with set 
+took 0.62831711769104 for 1001 and   0.0006276894282627773 for each on average with set 
+took 5.785451889038086 for 10001 and 0.0005784873401697916 for each on average with set 
+
+tok = 0.001466059446334839
+par = 0.001592507839202881
+int = 0.0655979778766632
+All took 68.79853010177612 with set
+tok = 0.0017423095703125
+par = 0.0018149688243865967
+int = 0.07728730630874633
+All took 81.01235866546631 with out set
