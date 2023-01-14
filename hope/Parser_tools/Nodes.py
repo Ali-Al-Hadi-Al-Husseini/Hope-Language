@@ -1,6 +1,7 @@
 from Tokenizer_tools.Token import Token
 from Tokenizer_tools.Position import Position
 
+
 class StringNode:
     def __init__(self,token : Token) -> None:
         self.token = token
@@ -8,7 +9,7 @@ class StringNode:
         self.end_position = token.end_position
 
     def __repr__(self) -> str:
-        return str(f'{self.token}')
+        return str(f'{self.token}__StringNode')
 
 class NumberNode:
     def __init__(self,token : Token) -> None:
@@ -17,20 +18,32 @@ class NumberNode:
         self.end_position = token.end_position
 
     def __repr__(self) -> str:
-        return str(f'{self.token}')
+        return str(f'{self.token}__NumberNode')
+
 
 class ListNode:
-    def __init__(self,elements_nodes,start_position : Position ,end_position : Position) -> None:
+    def __init__(self,elements_nodes: list[Token],start_position : Position ,end_position : Position) -> None:
         self.elements_nodes = elements_nodes
         self.start_position = start_position
         self.end_position  = end_position
 
+    def __repr__(self) -> str:
+        if hasattr(self.elements_nodes,'elements'):
+            body_nodes = [str(node) for node in self.elements_nodes.elements]
+        else:
+            body_nodes= [str(node) for node in self.elements_nodes]
+        return f"ListNode__{body_nodes}"
+
+
 class ListacssesNode:
-    def __init__(self, ident, index, start_position : Position,end_position : Position) -> None:
-        self.ident = ident
+    def __init__(self, identifier, index, start_position : Position,end_position : Position) -> None:
+        self.ident = identifier
         self.index = index
         self.start_position = start_position
         self.end_position = end_position
+
+    def __repr__(self) -> str:
+        return f"__{self.ident}__{self.index}__ListacssesNode"
 
 
 class unaryoperationNode:
@@ -41,7 +54,8 @@ class unaryoperationNode:
         self.end_position = node.end_position
 
     def __repr__(self) -> str:
-        return str(f'({self.operator_token}, {self.node})')
+        return str(f'({self.operation_token}, {self.node})')
+
 
 class BinOpertaionNode:
     def __init__(self, right_node, operation_token : Token, left_node) -> None:
@@ -64,12 +78,20 @@ class var_assign_node:
         self.start_position = var_name_token.start_position
         self.end_position = var_name_token.end_position       
 
+    def __repr__(self) -> str:
+        return f"{self.var_name_token}__var_assign_node"
+
+
 class var_access_node:
     def __init__(self,var_token : Token) -> None:
         self.var_name_token = var_token
         
         self.start_position = var_token.start_position
         self.end_position = var_token.end_position
+
+    def __repr__(self) -> str:
+        return f"{self.var_name_token}__var_access_node"
+
 
 class IfNode:
     def __init__(self,cases, else_case) -> None:
@@ -79,6 +101,8 @@ class IfNode:
         self.start_position = self.cases[0][0].start_position
         self.end_position = (self.else_case or self.cases[-1])[0].end_position
 
+    def __repr__(self) -> str:
+        return f"{self.cases}__{self.else_case or None}__IfNode"
 
 
 class ForNode():
@@ -93,6 +117,14 @@ class ForNode():
         self.start_position        = self.var_name_node.start_position
         self.end_position          = self.body_node.end_position
 
+    def __repr__(self) -> str:
+        if hasattr(self.body_node,'elements'):
+            body_nodes = [str(node) for node in self.body_node.elements]
+        else:
+            body_nodes= self.body_node
+        return f"For_Node__{body_nodes}"
+
+
 class WhileNode():
     def __init__(self, condition, body, should_return_null) -> None:
         self.condition_node =  condition
@@ -101,6 +133,13 @@ class WhileNode():
 
         self.start_position        = self.condition_node.start_position
         self.end_position          = self.body_node.end_position
+
+    def __repr__(self) -> str:
+        if hasattr(self.body_node,'elements'):
+            body_nodes = [str(node) for node in self.body_node.elements]
+        else:
+            body_nodes= self.body_node
+        return f"While_Node__{body_nodes}"
 
 
 class functionDefNode():
@@ -120,18 +159,29 @@ class functionDefNode():
         
         self.end_position =  self.body_node.end_position
 
+    def __repr__(self) -> str:
+        if hasattr(self.body_node,'elements'):
+            body_nodes = [str(node) for node in self.body_node.elements]
+        else:
+            body_nodes= self.body_node
+        return f"functionDefNode__{self.var_name_token}__{body_nodes}"
+
 
 class CallNode:
-  def __init__(self, node_to_call, arg_nodes) -> None:
-    self.node_to_call = node_to_call
-    self.arg_nodes = arg_nodes
+    def __init__(self, node_to_call, arg_nodes) -> None:
+        self.node_to_call = node_to_call
+        self.arg_nodes = arg_nodes
 
-    self.start_position = self.node_to_call.start_position
+        self.start_position = self.node_to_call.start_position
 
-    if len(self.arg_nodes) > 0:
-      self.end_position = self.arg_nodes[-1].end_position
-    else:
-      self.end_position = self.node_to_call.end_position
+        if len(self.arg_nodes) > 0:
+            self.end_position = self.arg_nodes[-1].end_position
+        else:
+            self.end_position = self.node_to_call.end_position
+
+    def __repr__(self) -> str:
+        return f"{self.node_to_call}__Call_Node"
+        
 
 class ReturnNode:
     def __init__(self,node_to_return, start_position : Position, end_position : Position ) -> None:
@@ -140,13 +190,23 @@ class ReturnNode:
         self.pos_start = start_position
         self.end_position = end_position
 
+    def __repr__(self) -> str:
+        return f"__ReturnNode__"
+
 
 class BreakNode:
     def __init__(self,start_position : Position,end_position : Position) -> None:
         self.pos_start = start_position
         self.end_position = end_position
+        
+    def __repr__(self) -> str:
+        return f"__BreakNode__"
+
 
 class ContinueNode:
     def __init__(self,start_position : Position, end_position : Position) -> None:
         self.pos_start = start_position
         self.end_position = end_position
+
+    def __repr__(self) -> str:
+        return f"__ContinueNode__"
