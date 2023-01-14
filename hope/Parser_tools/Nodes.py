@@ -134,6 +134,14 @@ class WhileNode():
         self.start_position        = self.condition_node.start_position
         self.end_position          = self.body_node.end_position
 
+    def __repr__(self) -> str:
+        if hasattr(self.body_node,'elements'):
+            body_nodes = [str(node) for node in self.body_node.elements]
+        else:
+            body_nodes= self.body_node
+        return f"While_Node__{body_nodes}"
+
+
 class functionDefNode():
     def __init__(self, var_name_token, arg_name_tokens, body_node, should_return_null) -> None:
         self.arg_name_tokens = arg_name_tokens
@@ -150,6 +158,13 @@ class functionDefNode():
             self.start_position = self.body_node.start_position
         
         self.end_position =  self.body_node.end_position
+
+    def __repr__(self) -> str:
+        if hasattr(self.body_node,'elements'):
+            body_nodes = [str(node) for node in self.body_node.elements]
+        else:
+            body_nodes= self.body_node
+        return f"functionDefNode__{self.var_name_token}__{body_nodes}"
 
 
 class CallNode:
