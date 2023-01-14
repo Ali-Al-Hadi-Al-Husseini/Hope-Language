@@ -1,5 +1,5 @@
 from .context_and_symbol_table import * 
-from Errors_tools.Errors import *
+from ..Errors_tools.Errors import *
 
 
 class Value():
