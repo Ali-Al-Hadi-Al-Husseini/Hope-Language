@@ -1,8 +1,8 @@
 import unittest
 
-from Hope import *
-from Hope import List,String,Number
-from pythonfy import matches
+from .Hope import *
+from .Hope import List,String,Number
+from .pythonfy import matches
 
 class TestVariables(unittest.TestCase):
 

@@ -1,6 +1,6 @@
 import unittest
 
-from Hope import *
+from .Hope import *
 
 
 class TestTokenizer(unittest.TestCase):

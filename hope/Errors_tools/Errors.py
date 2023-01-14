@@ -1,11 +1,4 @@
-import sys
-sys.path.append('c:\\Users\\lilo\\Documents\\GitHub\\Hope-Language\\hope')
-sys.path.append('c:\\Users\\lilo\\Documents\\GitHub\\Hope-Language')
-sys.path.append('c:\\Users\\lilo\\Documents\\GitHub\\Hope-Language\\hope\\Errors_tools')
-
-
-
-from string_with_arrows import string_with_arrows
+from .string_with_arrows import string_with_arrows
 from Tokenizer_tools.Position import Position
 
 class Error:

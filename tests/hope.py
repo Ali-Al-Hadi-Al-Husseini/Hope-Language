@@ -1,8 +1,10 @@
 import sys
-sys.path.append('c:\\Users\\lilo\\Documents\\GitHub\\Hope-Language\\hope')
-sys.path.append('c:\\Users\\lilo\\Documents\\GitHub\\Hope-Language')
+from pathlib import Path
+
+base_dir = Path(__file__).resolve().parent.parent
+sys.path.append(str(base_dir) + '\\hope')
+sys.path.append(str(base_dir))
 
 from hope import *
-import hope
 
-__all__ = hope.__all__ 
+__all__ = ['Parser','Token','Tokenizer','run','IllegalCharError','InvalidSyntaxErorr','Indexerror','RunTimeError','ExpectedCharError','Function']  + ['List','String','Number']

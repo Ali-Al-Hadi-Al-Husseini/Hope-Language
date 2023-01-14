@@ -1,9 +1,9 @@
 import unittest
 
-from Hope import *
-from Hope import List,String,Number
+from .Hope import *
+from .Hope import List,String,Number
 
-from pythonfy import convert_from_hope_to_python_objects
+from .pythonfy import convert_from_hope_to_python_objects
 
 class TestControlFlow(unittest.TestCase):
 
