@@ -101,6 +101,10 @@ class IfNode:
         self.start_position = self.cases[0][0].start_position
         self.end_position = (self.else_case or self.cases[-1])[0].end_position
 
+    def __repr__(self) -> str:
+        return f"{self.cases}__{self.else_case or None}__IfNode"
+
+
 class ForNode():
     def __init__(self, var_name, start_value, end_value, skip_value, body, should_return_null) -> None:
         self.start_value_node = start_value
@@ -112,6 +116,14 @@ class ForNode():
 
         self.start_position        = self.var_name_node.start_position
         self.end_position          = self.body_node.end_position
+
+    def __repr__(self) -> str:
+        if hasattr(self.body_node,'elements'):
+            body_nodes = [str(node) for node in self.body_node.elements]
+        else:
+            body_nodes= self.body_node
+        return f"For_Node__{body_nodes}"
+
 
 class WhileNode():
     def __init__(self, condition, body, should_return_null) -> None:
