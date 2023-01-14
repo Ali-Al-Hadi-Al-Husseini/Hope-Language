@@ -198,8 +198,15 @@ class BreakNode:
     def __init__(self,start_position : Position,end_position : Position) -> None:
         self.pos_start = start_position
         self.end_position = end_position
+        
+    def __repr__(self) -> str:
+        return f"__BreakNode__"
+
 
 class ContinueNode:
     def __init__(self,start_position : Position, end_position : Position) -> None:
         self.pos_start = start_position
         self.end_position = end_position
+
+    def __repr__(self) -> str:
+        return f"__ContinueNode__"
