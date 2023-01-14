@@ -351,8 +351,8 @@ class Interpreter:
 
         return Result.success(return_value)
 
-from Tokenizer_tools.Tokenizer import Tokenizer
-from Parser_tools.Parser import Parser
+from ..Tokenizer_tools.Tokenizer import Tokenizer
+from ..Parser_tools.Parser import Parser
 
 from os import name,system
 import time     
