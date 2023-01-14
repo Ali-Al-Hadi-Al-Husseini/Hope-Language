@@ -1,6 +1,6 @@
 """"
 
-        Converting Hope lang type into python types 
+        Converting Hope lang types  into python types 
 
 
 """
