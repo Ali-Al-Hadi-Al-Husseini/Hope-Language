@@ -5,7 +5,7 @@
 
 """
 
-from .Hope import * 
+from .lang import * 
 
 
 def make_tokens(string: str):

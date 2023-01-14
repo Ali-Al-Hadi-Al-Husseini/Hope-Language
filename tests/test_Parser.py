@@ -1,7 +1,7 @@
 
 import unittest
 
-from .Hope import *
+from .lang import *
 
 
 class TestParser(unittest.TestCase):
