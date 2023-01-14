@@ -1,6 +1,6 @@
 from .context_and_symbol_table import *
 
-from Errors_tools.Errors import RunTimeError
+from ..Errors_tools.Errors import RunTimeError
 from .Types import Value
 
 class RuntimeResult:

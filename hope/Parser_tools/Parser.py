@@ -1,5 +1,5 @@
-from Tokenizer_tools.tokens import *
-from Errors_tools.Errors import *
+from ..Tokenizer_tools.tokens import *
+from ..Errors_tools.Errors import *
 
 from .Parser_Result import ParserResult
 from .Nodes import * 

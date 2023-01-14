@@ -1,5 +1,5 @@
-from Tokenizer_tools.Token import Token
-from Tokenizer_tools.Position import Position
+from ..Tokenizer_tools.Token import Token
+from ..Tokenizer_tools.Position import Position
 
 
 class StringNode:

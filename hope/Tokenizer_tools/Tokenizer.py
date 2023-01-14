@@ -2,7 +2,7 @@ from .Token import Token
 from .Position import Position
 
 from .tokens import *
-from Errors_tools.Errors import *
+from ..Errors_tools.Errors import *
 
 from typing import List,Tuple,Optional
 

@@ -1,5 +1,5 @@
 from .string_with_arrows import string_with_arrows
-from Tokenizer_tools.Position import Position
+from ..Tokenizer_tools.Position import Position
 
 class Error:
     def __init__(self, start_pos: Position, end_pos: Position, error_name: str, details: str) -> None:

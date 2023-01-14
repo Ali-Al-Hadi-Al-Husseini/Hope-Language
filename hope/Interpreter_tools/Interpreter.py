@@ -1,8 +1,8 @@
 
 from .Functions_and_Runtime_Result import Function,BaseFunction,RuntimeResult
 
-from Errors_tools.Errors import *
-from Tokenizer_tools.tokens import  *
+from ..Errors_tools.Errors import *
+from ..Tokenizer_tools.tokens import  *
 
 from .context_and_symbol_table import *
 from .Types import *
