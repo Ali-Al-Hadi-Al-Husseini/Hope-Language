@@ -101,10 +101,6 @@ class IfNode:
         self.start_position = self.cases[0][0].start_position
         self.end_position = (self.else_case or self.cases[-1])[0].end_position
 
-    def __repr__(self) -> str:
-        return f"{self.cases}__{self.else_case or None}__IfNode"
-
-
 class ForNode():
     def __init__(self, var_name, start_value, end_value, skip_value, body, should_return_null) -> None:
         self.start_value_node = start_value
@@ -117,14 +113,6 @@ class ForNode():
         self.start_position        = self.var_name_node.start_position
         self.end_position          = self.body_node.end_position
 
-    def __repr__(self) -> str:
-        if hasattr(self.body_node,'elements'):
-            body_nodes = [str(node) for node in self.body_node.elements]
-        else:
-            body_nodes= self.body_node
-        return f"For_Node__{body_nodes}"
-
-
 class WhileNode():
     def __init__(self, condition, body, should_return_null) -> None:
         self.condition_node =  condition
@@ -133,14 +121,6 @@ class WhileNode():
 
         self.start_position        = self.condition_node.start_position
         self.end_position          = self.body_node.end_position
-
-    def __repr__(self) -> str:
-        if hasattr(self.body_node,'elements'):
-            body_nodes = [str(node) for node in self.body_node.elements]
-        else:
-            body_nodes= self.body_node
-        return f"While_Node__{body_nodes}"
-
 
 class functionDefNode():
     def __init__(self, var_name_token, arg_name_tokens, body_node, should_return_null) -> None:
@@ -159,13 +139,6 @@ class functionDefNode():
         
         self.end_position =  self.body_node.end_position
 
-    def __repr__(self) -> str:
-        if hasattr(self.body_node,'elements'):
-            body_nodes = [str(node) for node in self.body_node.elements]
-        else:
-            body_nodes= self.body_node
-        return f"functionDefNode__{self.var_name_token}__{body_nodes}"
-
 
 class CallNode:
     def __init__(self, node_to_call, arg_nodes) -> None:
@@ -179,10 +152,6 @@ class CallNode:
         else:
             self.end_position = self.node_to_call.end_position
 
-    def __repr__(self) -> str:
-        return f"{self.node_to_call}__Call_Node"
-        
-
 class ReturnNode:
     def __init__(self,node_to_return, start_position : Position, end_position : Position ) -> None:
         self.node_to_return = node_to_return
@@ -190,23 +159,13 @@ class ReturnNode:
         self.pos_start = start_position
         self.end_position = end_position
 
-    def __repr__(self) -> str:
-        return f"__ReturnNode__"
-
 
 class BreakNode:
     def __init__(self,start_position : Position,end_position : Position) -> None:
         self.pos_start = start_position
         self.end_position = end_position
-        
-    def __repr__(self) -> str:
-        return f"__BreakNode__"
-
 
 class ContinueNode:
     def __init__(self,start_position : Position, end_position : Position) -> None:
         self.pos_start = start_position
         self.end_position = end_position
-
-    def __repr__(self) -> str:
-        return f"__ContinueNode__"
