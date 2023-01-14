@@ -131,6 +131,7 @@ class Tokenizer:
         tokens.append(Token(TOKEN_EOF, start_position=self.position))
         return tokens, None
 
+    # makes  += ,-= ,%= ,*= and /=  
     def make_operation_and_equal(self,_type,Tokens, advance= True) -> Token:
         last_token = Tokens[-1]
         start_position = self.position
@@ -146,6 +147,7 @@ class Tokenizer:
         
         return Token(_type, start_position=start_position)
 
+
     def make_newline(self) -> Token:
         token = Token(TOKEN_NEWLINE, start_position=self.position)
         self.advance()
@@ -157,7 +159,8 @@ class Tokenizer:
             if self.current_character == None : return token
 
         return token 
-    #checks weather a number is float or int and returns a token back with it's type
+
+    #checks Whether a number is float or int and returns a token back with it's type
     def make_number(self) -> Token:
         num_str = ''
         dot_count = 0
@@ -178,6 +181,7 @@ class Tokenizer:
             return Token(TOKEN_INT, int(num_str),start_position, self.position)
         else:
             return Token(TOKEN_FLOAT, float(num_str), start_position, self.position)
+
 
     def make_identifier(self, symbol_found=False) -> Token:
         if symbol_found:
@@ -210,6 +214,7 @@ class Tokenizer:
 
         return None, ExpectedCharError(start_position,self.position, "Expected '=' after '!' ") 
     
+
     def make_equal(self) -> Token:
         start_position = self.position.copy()
         self.advance()
@@ -237,6 +242,7 @@ class Tokenizer:
             self.advance()
 
         return Token(Token_type,start_position=start_position,end_position=self.position)
+
 
     def make_str(self) -> Token:
         skip = False
