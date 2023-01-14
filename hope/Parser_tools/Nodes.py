@@ -179,12 +179,19 @@ class CallNode:
         else:
             self.end_position = self.node_to_call.end_position
 
+    def __repr__(self) -> str:
+        return f"{self.node_to_call}__Call_Node"
+        
+
 class ReturnNode:
     def __init__(self,node_to_return, start_position : Position, end_position : Position ) -> None:
         self.node_to_return = node_to_return
         
         self.pos_start = start_position
         self.end_position = end_position
+
+    def __repr__(self) -> str:
+        return f"__ReturnNode__"
 
 
 class BreakNode:
