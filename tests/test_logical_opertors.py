@@ -10,6 +10,11 @@ class TestOperators(unittest.TestCase):
 
     def test_operator(self):
         test_cases_success = [
+            ("1 > 0",[True],None),
+            ("1 > 2",[False],None),
+            ("1 >= 1",[True],None),
+            ("1 > 1",[False],None),
+
             
         ]
 
