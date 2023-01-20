@@ -14,7 +14,12 @@ class TestOperators(unittest.TestCase):
             ("1 > 2",[False],None),
             ("1 >= 1",[True],None),
             ("1 > 1",[False],None),
-
+            ("10 < 100",[True],None),
+            ("100 < 10 ",[False],None),
+            ("7 > -7",[True],None),
+            ("17.5 > 17.1",[True],None),
+            ("-1 > 0 ",[False],None),
+            ("19 <= 20",[True],None),
             
         ]
 
