@@ -24,6 +24,13 @@ class TestOperators(unittest.TestCase):
             ("7 >= -7",[True],None),
             ("17.5 >= 17.1",[True],None),
             ("-1 >= -1 ",[True],None),
+            ("not 2 > 1  ",[False],None),
+            ("not not -1 >= -1 ",[True],None),
+            ("not 1",[False],None),
+            ("not 0",[True],None),
+            ("not not not not not 1",[False],None),
+            ("not not not 0",[True],None),
+
             
         ]
 
