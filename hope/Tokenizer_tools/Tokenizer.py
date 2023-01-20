@@ -133,12 +133,14 @@ class Tokenizer:
 
     # makes  += ,-= ,%= ,*= and /=  
     def make_operation_and_equal(self,_type,Tokens, advance= True) -> Token:
-        last_token = Tokens[-1]
+        last_token = None
+        if len(Tokens) > 0:
+            last_token = Tokens[-1]
         start_position = self.position
         if advance:
             self.advance()
 
-        if self.current_character == '=':
+        if self.current_character == '=' and last_token != None:
 
             Tokens.append(Token(TOKEN_EQ,start_position=start_position))
             Tokens.append(Token(TOKEN_IDENTIFIER,last_token.value,start_position= start_position))
