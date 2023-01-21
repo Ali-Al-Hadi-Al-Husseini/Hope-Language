@@ -140,7 +140,8 @@ class Tokenizer:
 
         if self.current_character == '=':
             Tokens.append(Token(TOKEN_EQ,start_position=start_position))
-            Tokens.append(Token(TOKEN_IDENTIFIER,Tokens[-2].value,start_position= start_position))
+            if len(Tokens) > 2 :
+                Tokens.append(Token(TOKEN_IDENTIFIER,Tokens[-2].value,start_position= start_position))
             self.advance()
             return Token(_type, start_position=self.position)
         
