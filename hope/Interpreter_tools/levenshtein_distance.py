@@ -44,6 +44,6 @@ def find_closest_to_string(name,context,global_symbol_Table,Built_in_identifiers
         while identifier in all_identifire_defined:
             all_identifire_defined.remove(identifier)
     
-    if len(all_identifire_defined) > 0 :
+    if len(all_identifire_defined) < 1 :
         return None
     return min(all_identifire_defined,key= lambda key: levenshtein_distance(name,key))
