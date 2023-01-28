@@ -19,7 +19,7 @@ class TestVariables(unittest.TestCase):
             ("""let a = "hello"; a *= 2 ; print(a)""",['hello',"hellohello",'hellohello'],None),
 
             ("""let x = abc; print(x+1)""" ,[], RunTimeError),
-            ("""abc = x ;""" ,[], RunTimeError),
+            ("""abc = x ;""" ,[], InvalidSyntaxErorr),
             ("""x = abc; print(x+1)""" ,[], RunTimeError),
             ("""let x = 1; print(abc+1)""" ,[], RunTimeError)    
         ]
