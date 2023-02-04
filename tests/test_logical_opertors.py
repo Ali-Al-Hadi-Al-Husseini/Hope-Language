@@ -30,8 +30,16 @@ class TestOperators(unittest.TestCase):
             ("not 0",[True],None),
             ("not not not not not 1",[False],None),
             ("not not not 0",[True],None),
-
-            
+            ("true and false",[False],None),
+            ("true and true",[True],None),
+            ("false and false",[False],None),
+            ("true or false",[True],None),
+            ("true or true",[True],None),
+            ("false or false",[False],None),
+            ("3 > 2 and 2 > 1",[True],None),
+            ("not 2 > 1 or 22 > 17",[True],None),
+            ("not 2 > 1 and 2 > 1",[False],None),
+            ("(not 2 > 1 & 2 > 1) | not 2 > 1 or 22 > 17",[True],None)
         ]
 
         for code, expected_result, expected_error in test_cases_success:
