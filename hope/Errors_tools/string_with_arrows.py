@@ -1,4 +1,6 @@
-def string_with_arrows(text, start_pos, end_pos):
+from ..Tokenizer_tools.Position import Position
+
+def string_with_arrows(text, start_pos: Position, end_pos: Position) -> str:
 
     result = ''
 
