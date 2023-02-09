@@ -8,7 +8,7 @@ class Error:
         self.start_pos = start_pos
         self.end_pos = end_pos
 
-    def as_string(self):
+    def as_string(self) -> str:
         result =  str(f'{self.error_name}: {self.details} \n File {self.start_pos.fn}, line {self.start_pos.line + 1}')
         result += '\n\n' + string_with_arrows(self.start_pos.ftxt, self.start_pos, self.end_pos)
         return result
@@ -34,7 +34,7 @@ class RunTimeError(Error):
         super().__init__(start_pos, end_pos, "Runtime Error", details)
         self.context = context
 
-    def as_string(self):
+    def as_string(self) -> str:
         result =  str(f'{self.error_name}: {self.details} \n File {self.start_pos.fn}, line {self.start_pos.line + 1}')
         result += '\n\n' + string_with_arrows(self.start_pos.ftxt, self.start_pos, self.end_pos)
         return result
@@ -44,14 +44,14 @@ class ExpectedCharError(Error):
     def __init__(self, start_pos: Position, end_pos: Position, error_name: str, details: str) -> None:
         super().__init__(start_pos, end_pos, error_name, details)
 
-    def as_string(self):
+    def as_string(self) -> str:
         result = self.generate_traceback()
         result +=  str(f'{self.error_name}: {self.details}')
         result += '\n\n' + string_with_arrows(self.start_pos.ftxt, self.start_pos, self.end_pos)
 
         return result
 
-    def generate_traceback(self):
+    def generate_traceback(self) -> str:
         result = ''
         pos = self.start_pos
         ctx = self.context
