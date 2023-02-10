@@ -1,7 +1,7 @@
 from .Position import Position
 
 class Token():
-    def __init__(self, _type: str, value=None, start_position: Position = None, end_position: Position = None) -> None:
+    def __init__(self, _type: str, value: str = None, start_position: Position = None, end_position: Position = None) -> None:
         self.type = _type
         self.value = value
 
