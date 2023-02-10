@@ -10,19 +10,19 @@ class SymbolTable:
         self.symbols = {}
         self.parent = parent
 
-    def get(self, name):
+    def get(self, name: str) -> any:
         value = self.symbols.get(name, None)
         if value == None and self.parent:
             return self.parent.get(name)
         return  value
 
-    def set(self, name, value):
+    def set(self, name: str, value: any) -> None:
         self.symbols[name] = value
 
-    def remove(self, name):
+    def remove(self, name:str) -> None:
         del self.symbols[name]
 
-    def is_in(self,name):
+    def is_in(self,name: str) -> bool:
         return name  in self.symbols
 
     def __repr__(self) -> str:
