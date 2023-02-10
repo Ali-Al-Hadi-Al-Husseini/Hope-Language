@@ -8,7 +8,7 @@ class Position:
         self.ftxt = ftxt # file text
         
     
-    def advance(self, current_character : str = None) :
+    def advance(self, current_character : str = None) -> 'Position':
         self.idx += 1
         self.col += 1
 
@@ -18,6 +18,6 @@ class Position:
 
         return self
 
-    def copy(self):
+    def copy(self) -> 'Position':
         return Position(self.idx, self.line, self.col,self.fn,self.ftxt)
 
