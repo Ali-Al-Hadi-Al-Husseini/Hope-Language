@@ -132,7 +132,7 @@ class Tokenizer:
         return tokens, None
 
     # makes  += ,-= ,%= ,*= and /=  
-    def make_operation_and_equal(self,_type,Tokens, advance= True) -> Token:
+    def make_operation_and_equal(self,_type,Tokens: List[Token], advance :bool = True) -> Token:
 
         start_position = self.position
         if advance:
@@ -183,7 +183,7 @@ class Tokenizer:
             return Token(TOKEN_FLOAT, float(num_str), start_position, self.position)
 
 
-    def make_identifier(self, symbol_found=False) -> Token:
+    def make_identifier(self, symbol_found: bool=False) -> Token:
         if symbol_found:
             symbols_table = {
                             '&': 'and',
