@@ -12,7 +12,7 @@ class ParserResult:
         self.advance_count += 1
 
 
-    def Register(self,result):
+    def Register(self,result: 'ParserResult'):
         self.last_registered_Advance_count = result.advance_count
         self.advance_count += result.advance_count
 
@@ -20,18 +20,18 @@ class ParserResult:
         return  result.node
         
 
-    def Sucsses(self,node):
+    def Sucsses(self,node) -> 'ParserResult':
         self.node = node
         return self
 
 
-    def failure(self, error):
+    def failure(self, error) -> 'ParserResult':
         if not self.error  or self.last_registered_Advance_count  == 0:
             self.error = error
         return self
 
 
-    def try_Register(self, result):
+    def try_Register(self, result: 'ParserResult'):
         if  result.error:
             self.to_reverse_count = result.advance_count
             return None
