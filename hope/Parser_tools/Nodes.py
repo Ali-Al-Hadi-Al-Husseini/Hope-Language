@@ -36,7 +36,7 @@ class ListNode:
 
 
 class ListacssesNode:
-    def __init__(self, identifier, index, start_position : Position,end_position : Position) -> None:
+    def __init__(self, identifier: str, index: int, start_position : Position,end_position : Position) -> None:
         self.ident = identifier
         self.index = index
         self.start_position = start_position
@@ -47,7 +47,7 @@ class ListacssesNode:
 
 
 class unaryoperationNode:
-    def __init__(self, operator_token : Token , node) -> None:
+    def __init__(self, operator_token : Token , node: NumberNode) -> None:
         self.operation_token = operator_token
         self.node = node
         self.start_position = operator_token.start_position
@@ -70,7 +70,7 @@ class BinOpertaionNode:
 
 
 class var_assign_node:
-    def __init__(self, var_name_token, value_node,force = False) -> None:
+    def __init__(self, var_name_token:Token, value_node,force = False) -> None:
         self.var_name_token = var_name_token
         self.value_node = value_node
         self.force = force
@@ -126,7 +126,7 @@ class ForNode():
 
 
 class WhileNode():
-    def __init__(self, condition, body, should_return_null) -> None:
+    def __init__(self, condition, body, should_return_null: bool) -> None:
         self.condition_node =  condition
         self.body_node      = body
         self.should_return_null = should_return_null
@@ -143,7 +143,7 @@ class WhileNode():
 
 
 class functionDefNode():
-    def __init__(self, var_name_token, arg_name_tokens, body_node, should_return_null) -> None:
+    def __init__(self, var_name_token, arg_name_tokens, body_node, should_return_null: bool) -> None:
         self.arg_name_tokens = arg_name_tokens
         self.body_node =  body_node
         self.var_name_token = var_name_token
