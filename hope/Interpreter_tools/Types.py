@@ -3,16 +3,16 @@ from ..Errors_tools.Errors import *
 
 
 class Value():
-    def __init__(self):
+    def __init__(self) -> None:
         self.set_position()
         self.set_context()
 
-    def set_position(self, start_position=None, end_position=None):
+    def set_position(self, start_position=None, end_position=None) -> 'Value':
         self.start_position = start_position
         self.end_position = end_position
         return self
 
-    def set_context(self, context=None):
+    def set_context(self, context=None) -> 'Value':
         self.context = context
         return self
 
@@ -65,10 +65,10 @@ class Value():
     def copy(self):
         raise Exception('No copy method defined')
 
-    def is_true(self):
+    def is_true(self) -> bool:
         return False
 
-    def illegal_operation(self, other=None):
+    def illegal_operation(self, other=None) -> RunTimeError:
         if not other: other = self
         return RunTimeError(
             self.start_position, other.end_position,
@@ -77,7 +77,7 @@ class Value():
         )
 
 class String(Value):
-    def __init__(self,value):
+    def __init__(self,value) -> None:
         super().__init__()
         self.value = value
 
@@ -87,7 +87,7 @@ class String(Value):
         else:
             return None, Value.illegal_operation(self,other)
 
-    def addition(self, other):
+    def addition(self, other) -> 'String':
         return String(self.value + str(other.value)).set_context(self.context), None
 
 
@@ -101,15 +101,16 @@ class String(Value):
         else:
             return None, Value.illegal_operation(char,by_this) 
 
-    def length(self):
+    def length(self) -> 'Number':
         return Number(len(self.value))
 
-    def copy(self):
+    def copy(self) -> 'String':
         copy = String(self.value)
         copy.set_context(self.context)
         copy.set_position(self.start_position, self.end_position)
         return copy
-    def __repr__(self):
+
+    def __repr__(self) -> str:
         return str(f'"{self.value}"'
 )
 class List(Value):
@@ -312,19 +313,19 @@ class Number(Value):
         else:
             return None, Value.illegal_operation(self, other)
 
-    def _not(self):
+    def _not(self)-> 'Number':
         return Number(1 if self.value == 0 else 0).set_context(self.context), None
 
-    def copy(self):
+    def copy(self) -> 'Number':
         copy = Number(self.value)
         copy.set_position(self.start_position, self.end_position)
         copy.set_context(self.context)
         return copy
 
-    def is_true(self):
+    def is_true(self) -> bool:
         return self.value != 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.value)
         
 Number.null = Number(0)
