@@ -148,7 +148,7 @@ class Parser:
             return Result.Sucsses(CallNode(most,argument_nodes))
         return Result.Sucsses(most)
 
-# to understand the order of this reader grammers in the top of the file
+# to understand the order of this reader grammers in the grammer.txt file
     def Most(self) -> ParserResult:
         Result = ParserResult()
         token = self.Current_Token
