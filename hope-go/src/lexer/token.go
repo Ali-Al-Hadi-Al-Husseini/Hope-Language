@@ -6,12 +6,17 @@ type Token struct {
 	Position
 }
 
+func (tok Token) Matches(_type string, value string) bool {
+	return tok.Type == _type && tok.Value == value
+}
+
 type Position struct {
 	Idx  int
 	Line int
 	Col  int
 	CodeFile
 }
+
 type CodeFile struct {
 	Name string
 	Text string
