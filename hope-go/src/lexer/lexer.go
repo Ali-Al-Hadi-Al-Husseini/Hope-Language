@@ -24,7 +24,7 @@ func (lexer *Lexer) lexer(code string) []Token {
 		default:
 			switch {
 			case isdigit(lexer.CurrChar):
-				tokens = append(tokens)
+				lexer.makeNumber()
 			}
 		}
 	}
@@ -43,7 +43,9 @@ func (lexer *Lexer) advance(advanceChar bool) {
 		lexer.CurrChar = 0
 	}
 }
+func (Lexer *Lexer) makeNumber() {
 
+}
 func isdigit(ch byte) bool {
 	return '0' <= ch && '9' >= ch
 }
