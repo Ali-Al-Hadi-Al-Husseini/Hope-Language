@@ -55,7 +55,11 @@ func (lexer *Lexer) lexer(code string) ([]Token, error) {
 		default:
 			switch {
 			case isdigit(lexer.CurrChar):
-				tokens = append(tokens, lexer.makeNumber())
+				currToken, err := lexer.makeNumber()
+				if err != nil {
+					return []Token{}, fmt.Errorf("IllegalChar")
+				}
+				tokens = append(tokens, currToken)
 
 			case isLetter(lexer.CurrChar):
 				tokens = append(tokens, lexer.makeIdentifier())
@@ -81,8 +85,39 @@ func (lexer *Lexer) advance(advanceChar bool) {
 		lexer.CurrChar = 0
 	}
 }
-func (Lexer *Lexer) makeNumber() Token {
-	return Token{}
+func (Lexer *Lexer) makeNumber() (Token, error) {
+	dotCount := 0
+	start_pos := *Lexer.Pos
+	idx := start_pos.Idx
+
+	for Lexer.CurrChar != 0 && isdigit(Lexer.CurrChar) {
+		if Lexer.CurrChar == '.' {
+			if dotCount > 0 {
+				return Token{}, fmt.Errorf("IllegalChar")
+			}
+			dotCount += 1
+			idx += 1
+		} else {
+			idx += 1
+		}
+		Lexer.advance(true)
+	}
+	if dotCount == 0 {
+		return Token{
+			Type:   TOKEN_INT,
+			Value:  string(Lexer.File.Text[start_pos.Idx : idx+1]),
+			Pos:    start_pos,
+			endPos: *Lexer.Pos,
+		}, nil
+	}
+
+	return Token{
+		Type:   TOKEN_FLOAT,
+		Value:  string(Lexer.File.Text[start_pos.Idx : idx+1]),
+		Pos:    start_pos,
+		endPos: *Lexer.Pos,
+	}, nil
+
 }
 func (Lexer *Lexer) makeNewLine() Token {
 	return Token{}
