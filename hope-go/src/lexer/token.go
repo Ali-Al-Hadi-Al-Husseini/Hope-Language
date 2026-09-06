@@ -71,7 +71,7 @@ type Position struct {
 	Idx  int
 	Line int
 	Col  int
-	CodeFile
+	File *CodeFile
 }
 
 type CodeFile struct {
