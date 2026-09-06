@@ -1,5 +1,10 @@
 package lexer
 
-func lexer(code string) []string {
+type Lexer struct {
+	CodeFile
+	Position
+}
+
+func (lexer *Lexer) lexer(code string) []string {
 	return []string{}
 }
