@@ -23,37 +23,42 @@ func (lexer *Lexer) lexer(code string) ([]Token, error) {
 			}
 			lexer.advance(true)
 		case ';', '\n':
-			lexer.makeNewLine()
+			tokens = append(tokens, lexer.makeNewLine())
 
 		case '"', '\'':
-			lexer.makeStr()
+			tokens = append(tokens, lexer.makeStr())
 
 		case '+', '-', '/', '*', '%', '^':
-			lexer.makeOperationAndEqual()
+			tokens = append(tokens, lexer.makeOperationAndEqual())
 
 		case '!':
-			lexer.makeNotEqual()
+			tokens = append(tokens, lexer.makeNotEqual())
 
 		case '&', '|':
-			lexer.makeLogicalGate()
+			tokens = append(tokens, lexer.makeLogicalGate())
 
-		case '{', '}', '[', ']', '(', ')':
-			// add token here
+		case '{', '}', '[', ']', '(', ')', ',':
+			tokens = append(tokens,
+				Token{
+					Type:  symbols[lexer.CurrChar],
+					Value: "",
+					Pos:   *lexer.Pos,
+				})
 			lexer.advance(true)
 
 		case '=':
-			lexer.makeEqual()
+			tokens = append(tokens, lexer.makeEqual())
 
 		case '>', '<':
-			lexer.makeGtLt()
+			tokens = append(tokens, lexer.makeGtLt())
 
 		default:
 			switch {
 			case isdigit(lexer.CurrChar):
-				lexer.makeNumber()
+				tokens = append(tokens, lexer.makeNumber())
 
 			case isLetter(lexer.CurrChar):
-				lexer.makeIdentifier()
+				tokens = append(tokens, lexer.makeIdentifier())
 
 			default:
 				return []Token{}, fmt.Errorf("IllegalChar")
@@ -76,35 +81,35 @@ func (lexer *Lexer) advance(advanceChar bool) {
 		lexer.CurrChar = 0
 	}
 }
-func (Lexer *Lexer) makeNumber() {
-
+func (Lexer *Lexer) makeNumber() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeNewLine() {
-
+func (Lexer *Lexer) makeNewLine() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeStr() {
-
+func (Lexer *Lexer) makeStr() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeOperationAndEqual() {
-
+func (Lexer *Lexer) makeOperationAndEqual() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeArrowOrMinus() {
-
+func (Lexer *Lexer) makeArrowOrMinus() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeGtLt() {
-
+func (Lexer *Lexer) makeGtLt() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeEqual() {
-
+func (Lexer *Lexer) makeEqual() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeNotEqual() {
-
+func (Lexer *Lexer) makeNotEqual() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeIdentifier() {
-
+func (Lexer *Lexer) makeIdentifier() Token {
+	return Token{}
 }
-func (Lexer *Lexer) makeLogicalGate() {
-
+func (Lexer *Lexer) makeLogicalGate() Token {
+	return Token{}
 }
 
 func isdigit(ch byte) bool {
@@ -112,5 +117,5 @@ func isdigit(ch byte) bool {
 }
 func isLetter(ch byte) bool {
 
-	return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')
+	return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || (ch == '_')
 }
