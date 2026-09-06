@@ -20,6 +20,8 @@ func (lexer *Lexer) lexer(code string) []Token {
 				lexer.advance(true)
 			}
 			lexer.advance(true)
+		case ';', '\n':
+			lexer.makeNewLine()
 
 		default:
 			switch {
@@ -44,6 +46,24 @@ func (lexer *Lexer) advance(advanceChar bool) {
 	}
 }
 func (Lexer *Lexer) makeNumber() {
+
+}
+func (Lexer *Lexer) makeNewLine() {
+
+}
+func (Lexer *Lexer) makeStr() {
+
+}
+func (Lexer *Lexer) makeOperationAndEqual() {
+
+}
+func (Lexer *Lexer) makeArrowOrMinus() {
+
+}
+func (Lexer *Lexer) makeGtLt() {
+
+}
+func (Lexer *Lexer) makeEqual() {
 
 }
 func isdigit(ch byte) bool {
