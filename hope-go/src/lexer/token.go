@@ -37,6 +37,20 @@ const (
 	TOKEN_NEWLINE    = "NEWLINE"
 )
 
+var symbols = map[byte]string{
+	'+': TOKEN_PLUS,
+	'-': TOKEN_MINUS,
+	'*': TOKEN_MUL,
+	'/': TOKEN_DIV,
+	'%': TOKEN_MODULE,
+	'(': TOKEN_LPAREN,
+	')': TOKEN_RPARENT,
+	'{': TOKEN_LCURLY,
+	'}': TOKEN_RCURLY,
+	'[': TOKEN_LSQUARE,
+	']': TOKEN_RSQUARE,
+	',': TOKEN_COMMA,
+}
 var KEYWORDS = map[string]bool{
 
 	"let":      true,
@@ -60,7 +74,7 @@ var KEYWORDS = map[string]bool{
 type Token struct {
 	Type  string
 	Value string
-	Position
+	Pos   Position
 }
 
 func (tok Token) Matches(_type string, value string) bool {
@@ -79,11 +93,11 @@ type CodeFile struct {
 	Text string
 }
 
-func (pos *Position) Advance(currChar string) Position {
+func (pos *Position) Advance(currChar byte) Position {
 	pos.Idx += 1
 	pos.Col += 1
 
-	if currChar == "\n" {
+	if currChar == '\n' {
 		pos.Line += 1
 		pos.Col += 1
 	}
