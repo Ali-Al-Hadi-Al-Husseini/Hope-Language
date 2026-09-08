@@ -8,6 +8,11 @@ type Lexer struct {
 	File     *CodeFile
 }
 
+func CreateLexer(fileName string, code string) Lexer {
+	fl := CodeFile{Name: fileName, Text: code}
+	pos := Position{Idx: -1, Line: -1, Col: -1, File: &fl}
+	return Lexer{CurrChar: '0', Pos: &pos, File: &fl}
+}
 func (lexer *Lexer) Tokenize() ([]Token, error) {
 	tokens := []Token{}
 
