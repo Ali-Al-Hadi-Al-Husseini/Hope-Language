@@ -1,9 +1,10 @@
 package lexer
 
 type Token struct {
-	Type  string
-	Value string
-	Pos   Position
+	Type   string
+	Value  string
+	Pos    Position
+	EndPos Position
 }
 
 func (tok Token) Matches(_type string, value string) bool {
