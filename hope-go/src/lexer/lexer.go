@@ -11,7 +11,7 @@ type Lexer struct {
 func (lexer *Lexer) Tokenize() ([]Token, error) {
 	tokens := []Token{}
 
-	for lexer.CurrChar != 0 {
+	for lexer.Pos.Idx < len(lexer.File.Text) {
 
 		switch lexer.CurrChar {
 		case ' ', '\t':
@@ -28,7 +28,10 @@ func (lexer *Lexer) Tokenize() ([]Token, error) {
 		case '"', '\'':
 			tokens = append(tokens, lexer.makeStr())
 
-		case '+', '-', '/', '*', '%', '^':
+		case '-':
+			tokens = append(tokens, lexer.makeArrowOrMinus())
+
+		case '+', '/', '*', '%', '^':
 			tokens = append(tokens, lexer.makeOperationAndEqual())
 
 		case '!':
@@ -105,7 +108,7 @@ func (Lexer *Lexer) makeNumber() (Token, error) {
 	if dotCount == 0 {
 		return Token{
 			Type:   TOKEN_INT,
-			Value:  string(Lexer.File.Text[start_pos.Idx : idx+1]),
+			Value:  string(Lexer.File.Text[start_pos.Idx:idx]),
 			Pos:    start_pos,
 			EndPos: *Lexer.Pos,
 		}, nil
@@ -113,7 +116,7 @@ func (Lexer *Lexer) makeNumber() (Token, error) {
 
 	return Token{
 		Type:   TOKEN_FLOAT,
-		Value:  string(Lexer.File.Text[start_pos.Idx : idx+1]),
+		Value:  string(Lexer.File.Text[start_pos.Idx:idx]),
 		Pos:    start_pos,
 		EndPos: *Lexer.Pos,
 	}, nil
