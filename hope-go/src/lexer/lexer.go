@@ -8,7 +8,7 @@ type Lexer struct {
 	File     *CodeFile
 }
 
-func (lexer *Lexer) lexer(code string) ([]Token, error) {
+func (lexer *Lexer) Tokenize() ([]Token, error) {
 	tokens := []Token{}
 
 	for lexer.CurrChar != 0 {
@@ -107,7 +107,7 @@ func (Lexer *Lexer) makeNumber() (Token, error) {
 			Type:   TOKEN_INT,
 			Value:  string(Lexer.File.Text[start_pos.Idx : idx+1]),
 			Pos:    start_pos,
-			endPos: *Lexer.Pos,
+			EndPos: *Lexer.Pos,
 		}, nil
 	}
 
@@ -115,7 +115,7 @@ func (Lexer *Lexer) makeNumber() (Token, error) {
 		Type:   TOKEN_FLOAT,
 		Value:  string(Lexer.File.Text[start_pos.Idx : idx+1]),
 		Pos:    start_pos,
-		endPos: *Lexer.Pos,
+		EndPos: *Lexer.Pos,
 	}, nil
 
 }
