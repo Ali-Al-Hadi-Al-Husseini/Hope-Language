@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -11,6 +12,7 @@ func TestLexer(t *testing.T) {
 		want      []string
 	}{
 		{"", []string{}},
+		{"123 ", []string{"INTEGER:123"}},
 		{"(2+1) ", []string{"LPAREN", "INTEGER:2", "PLUS", "INTEGER:1", "RPAREN", "EOF"}},
 		{"(-2+1) ", []string{"LPAREN", "MINUS", "INTEGER:2", "PLUS", "INTEGER:1", "RPAREN", "EOF"}},
 		{"(7 * 2) ", []string{"LPAREN", "INTEGER:7", "MUL", "INTEGER:2", "RPAREN", "EOF"}},
@@ -46,11 +48,28 @@ func TestLexer(t *testing.T) {
 		{"let x = 17; print(x*2 + 7 / 3 - 8) ", []string{"KEYWORD:let", "IDENTIFIER:x", "EQ", "INTEGER:17", "NEWLINE", "IDENTIFIER:print", "LPAREN", "IDENTIFIER:x", "MUL", "INTEGER:2", "PLUS", "INTEGER:7", "DIV", "INTEGER:3", "MINUS", "INTEGER:8", "RPAREN", "EOF"}},
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		t.Run(tt.expresion, func(t *testing.T) {
-			got := lexer(tt.expresion)
+			fl := CodeFile{Name: "test.hope", Text: tt.expresion}
+			pos := Position{Idx: -1, Line: -1, Col: -1, File: &fl}
+			lex := Lexer{CurrChar: '0', Pos: &pos, File: &fl}
+
+			tokens, _ := lex.Tokenize()
+
+			got := make([]string, len(tokens))
+			for i, token := range tokens {
+				if token.Value != "" {
+					got[i] = token.Type + ":" + token.Value
+				} else {
+					got[i] = token.Type
+				}
+			}
+
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("lexer(%q) = %v; want %v", tt.expresion, got, tt.want)
+				//t.Errorf("lexer(%q) = %v; want %v", tt.expresion, got, tt.want)
+				t.Errorf("Failed TestCase : %d\n", i)
+			} else {
+				fmt.Printf("Passed TestCase : %d\n", i)
 			}
 		})
 	}
