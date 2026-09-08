@@ -11,6 +11,7 @@ type Lexer struct {
 func (lexer *Lexer) Tokenize() ([]Token, error) {
 	tokens := []Token{}
 
+	lexer.advance(true)
 	for lexer.Pos.Idx < len(lexer.File.Text) {
 
 		switch lexer.CurrChar {
@@ -122,31 +123,41 @@ func (Lexer *Lexer) makeNumber() (Token, error) {
 	}, nil
 
 }
-func (Lexer *Lexer) makeNewLine() Token {
+func (lexer *Lexer) makeNewLine() Token {
+	lexer.advance(true)
 	return Token{}
 }
-func (Lexer *Lexer) makeStr() Token {
+func (lexer *Lexer) makeStr() Token {
+	lexer.advance(true)
+
 	return Token{}
 }
-func (Lexer *Lexer) makeOperationAndEqual() Token {
+func (lexer *Lexer) makeOperationAndEqual() Token {
+	lexer.advance(true)
 	return Token{}
 }
-func (Lexer *Lexer) makeArrowOrMinus() Token {
+func (lexer *Lexer) makeArrowOrMinus() Token {
+	lexer.advance(true)
 	return Token{}
 }
-func (Lexer *Lexer) makeGtLt() Token {
+func (lexer *Lexer) makeGtLt() Token {
+	lexer.advance(true)
 	return Token{}
 }
-func (Lexer *Lexer) makeEqual() Token {
+func (lexer *Lexer) makeEqual() Token {
+	lexer.advance(true)
 	return Token{}
 }
-func (Lexer *Lexer) makeNotEqual() Token {
+func (lexer *Lexer) makeNotEqual() Token {
+	lexer.advance(true)
 	return Token{}
 }
-func (Lexer *Lexer) makeIdentifier() Token {
+func (lexer *Lexer) makeIdentifier() Token {
+	lexer.advance(true)
 	return Token{}
 }
-func (Lexer *Lexer) makeLogicalGate() Token {
+func (lexer *Lexer) makeLogicalGate() Token {
+	lexer.advance(true)
 	return Token{}
 }
 
