@@ -50,9 +50,7 @@ func TestLexer(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(tt.expresion, func(t *testing.T) {
-			fl := CodeFile{Name: "test.hope", Text: tt.expresion}
-			pos := Position{Idx: -1, Line: -1, Col: -1, File: &fl}
-			lex := Lexer{CurrChar: '0', Pos: &pos, File: &fl}
+			lex := CreateLexer("test.hope", tt.expresion)
 
 			tokens, _ := lex.Tokenize()
 
