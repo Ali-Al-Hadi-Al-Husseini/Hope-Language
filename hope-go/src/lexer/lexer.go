@@ -199,8 +199,20 @@ func (lex *lexer) makeArrowOrMinus(tokens *[]token) (token, error) {
 
 // a function  that checks if '>' or '<'  are followed by and equals sign '=' to change its type
 func (lex *lexer) makeGtLt() token {
+	startPos := *lex.pos
+	tokType := symbols[lex.currChar]
 	lex.advance(true)
-	return token{}
+
+	if lex.currChar == '>' && tokType == TOKEN_GT {
+		return token{Type: TOKEN_START, Pos: startPos, EndPos: *lex.pos}
+	} else if lex.currChar == '<' && tokType == TOKEN_LT {
+		return token{Type: TOKEN_END, Pos: startPos, EndPos: *lex.pos}
+	}
+	if lex.currChar == '=' {
+		tokType += "E"
+		lex.advance(true)
+	}
+	return token{Type: tokType, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeEqual() token {
 	lex.advance(true)
