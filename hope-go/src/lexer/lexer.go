@@ -2,79 +2,79 @@ package lexer
 
 import "fmt"
 
-type Lexer struct {
-	CurrChar byte
-	Pos      *Position
+type lexer struct {
+	currChar byte
+	pos      *position
 	File     *CodeFile
 }
 
-func CreateLexer(fileName string, code string) Lexer {
+func CreateLexer(fileName string, code string) lexer {
 	fl := CodeFile{Name: fileName, Text: code}
-	pos := Position{Idx: -1, Line: -1, Col: -1, File: &fl}
-	return Lexer{CurrChar: '0', Pos: &pos, File: &fl}
+	pos := position{Idx: -1, Line: -1, Col: -1, File: &fl}
+	return lexer{currChar: '0', pos: &pos, File: &fl}
 }
-func (lexer *Lexer) Tokenize() ([]Token, error) {
-	tokens := []Token{}
+func (lex *lexer) Tokenize() ([]token, error) {
+	tokens := []token{}
 
-	lexer.advance(true)
-	for lexer.Pos.Idx < len(lexer.File.Text) {
+	lex.advance(true)
+	for lex.pos.Idx < len(lex.File.Text) {
 
-		switch lexer.CurrChar {
+		switch lex.currChar {
 		case ' ', '\t':
-			lexer.advance(true)
+			lex.advance(true)
 		case '#':
-			lexer.advance(true)
-			for lexer.CurrChar != '\n' {
-				lexer.advance(true)
+			lex.advance(true)
+			for lex.currChar != '\n' {
+				lex.advance(true)
 			}
-			lexer.advance(true)
+			lex.advance(true)
 		case ';', '\n':
-			tokens = append(tokens, lexer.makeNewLine())
+			tokens = append(tokens, lex.makeNewLine())
 
 		case '"', '\'':
-			tokens = append(tokens, lexer.makeStr())
+			tokens = append(tokens, lex.makeStr())
 
 		case '-':
-			tokens = append(tokens, lexer.makeArrowOrMinus())
+			tokens = append(tokens, lex.makeArrowOrMinus())
 
 		case '+', '/', '*', '%', '^':
-			tokens = append(tokens, lexer.makeOperationAndEqual())
+			tokens = append(tokens, lex.makeOperationAndEqual())
 
 		case '!':
-			tokens = append(tokens, lexer.makeNotEqual())
+			tokens = append(tokens, lex.makeNotEqual())
 
 		case '&', '|':
-			tokens = append(tokens, lexer.makeLogicalGate())
+			tokens = append(tokens, lex.makeLogicalGate())
 
 		case '{', '}', '[', ']', '(', ')', ',':
 			tokens = append(tokens,
-				Token{
-					Type:  symbols[lexer.CurrChar],
+				token{
+					Type:  symbols[lex.currChar],
 					Value: "",
-					Pos:   *lexer.Pos,
+					Pos:   *lex.pos,
 				})
-			lexer.advance(true)
+			lex.advance(true)
 
 		case '=':
-			tokens = append(tokens, lexer.makeEqual())
+			tokens = append(tokens, lex.makeEqual())
 
 		case '>', '<':
-			tokens = append(tokens, lexer.makeGtLt())
+			tokens = append(tokens, lex.makeGtLt())
 
 		default:
 			switch {
-			case isdigit(lexer.CurrChar):
-				currToken, err := lexer.makeNumber()
+			case isdigit(lex.currChar):
+				currToken, err := lex.makeNumber()
 				if err != nil {
-					return []Token{}, fmt.Errorf("IllegalChar")
+					return []token{}, fmt.Errorf("IllegalChar")
 				}
 				tokens = append(tokens, currToken)
 
-			case isLetter(lexer.CurrChar):
-				tokens = append(tokens, lexer.makeIdentifier())
+			case isLetter(lex.currChar):
+				tokens = append(tokens, lex.makeIdentifier())
 
 			default:
-				return []Token{}, fmt.Errorf("IllegalChar")
+				return []token{}, fmt.Errorf("IllegalChar")
 			}
 
 		}
@@ -82,88 +82,101 @@ func (lexer *Lexer) Tokenize() ([]Token, error) {
 	return tokens, nil
 }
 
-func (lexer *Lexer) advance(advanceChar bool) {
-	lexer.Pos.Advance(lexer.CurrChar)
+func (lex *lexer) advance(advanceChar bool) {
+	lex.pos.Advance(lex.currChar)
 	if !advanceChar {
 		return
 	}
-	if lexer.Pos.Idx < len(lexer.File.Text) {
-		lexer.CurrChar = lexer.File.Text[lexer.Pos.Idx]
+	if lex.pos.Idx < len(lex.File.Text) {
+		lex.currChar = lex.File.Text[lex.pos.Idx]
 
 	} else {
-		lexer.CurrChar = 0
+		lex.currChar = 0
 	}
 }
-func (Lexer *Lexer) makeNumber() (Token, error) {
+func (lex *lexer) makeNumber() (token, error) {
 	dotCount := 0
-	start_pos := *Lexer.Pos
+	start_pos := *lex.pos
 	idx := start_pos.Idx
 
-	for Lexer.CurrChar != 0 && isdigit(Lexer.CurrChar) {
-		if Lexer.CurrChar == '.' {
+	for lex.currChar != 0 && isdigit(lex.currChar) {
+		if lex.currChar == '.' {
 			if dotCount > 0 {
-				return Token{}, fmt.Errorf("IllegalChar")
+				return token{}, fmt.Errorf("IllegalChar")
 			}
 			dotCount += 1
 			idx += 1
 		} else {
 			idx += 1
 		}
-		Lexer.advance(true)
+		lex.advance(true)
 	}
 	if dotCount == 0 {
-		return Token{
+		return token{
 			Type:   TOKEN_INT,
-			Value:  string(Lexer.File.Text[start_pos.Idx:idx]),
+			Value:  string(lex.File.Text[start_pos.Idx:idx]),
 			Pos:    start_pos,
-			EndPos: *Lexer.Pos,
+			EndPos: *lex.pos,
 		}, nil
 	}
 
-	return Token{
+	return token{
 		Type:   TOKEN_FLOAT,
-		Value:  string(Lexer.File.Text[start_pos.Idx:idx]),
+		Value:  string(lex.File.Text[start_pos.Idx:idx]),
 		Pos:    start_pos,
-		EndPos: *Lexer.Pos,
+		EndPos: *lex.pos,
 	}, nil
 
 }
-func (lexer *Lexer) makeNewLine() Token {
-	lexer.advance(true)
-	return Token{}
-}
-func (lexer *Lexer) makeStr() Token {
-	lexer.advance(true)
+func (lex *lexer) makeNewLine() token {
+	tok := token{Type: TOKEN_NEWLINE, Pos: *lex.pos}
+	lex.advance(true)
 
-	return Token{}
+	if lex.currChar == 0 {
+		return tok
+	}
+
+	for lex.currChar == '\n' || lex.currChar == ';' {
+		lex.advance(true)
+		if lex.currChar == 0 {
+			return tok
+		}
+	}
+
+	return tok
 }
-func (lexer *Lexer) makeOperationAndEqual() Token {
-	lexer.advance(true)
-	return Token{}
+func (lex *lexer) makeStr() token {
+	lex.advance(true)
+
+	return token{}
 }
-func (lexer *Lexer) makeArrowOrMinus() Token {
-	lexer.advance(true)
-	return Token{}
+func (lex *lexer) makeOperationAndEqual() token {
+	lex.advance(true)
+	return token{}
 }
-func (lexer *Lexer) makeGtLt() Token {
-	lexer.advance(true)
-	return Token{}
+func (lex *lexer) makeArrowOrMinus() token {
+	lex.advance(true)
+	return token{}
 }
-func (lexer *Lexer) makeEqual() Token {
-	lexer.advance(true)
-	return Token{}
+func (lex *lexer) makeGtLt() token {
+	lex.advance(true)
+	return token{}
 }
-func (lexer *Lexer) makeNotEqual() Token {
-	lexer.advance(true)
-	return Token{}
+func (lex *lexer) makeEqual() token {
+	lex.advance(true)
+	return token{}
 }
-func (lexer *Lexer) makeIdentifier() Token {
-	lexer.advance(true)
-	return Token{}
+func (lex *lexer) makeNotEqual() token {
+	lex.advance(true)
+	return token{}
 }
-func (lexer *Lexer) makeLogicalGate() Token {
-	lexer.advance(true)
-	return Token{}
+func (lex *lexer) makeIdentifier() token {
+	lex.advance(true)
+	return token{}
+}
+func (lex *lexer) makeLogicalGate() token {
+	lex.advance(true)
+	return token{}
 }
 
 func isdigit(ch byte) bool {
