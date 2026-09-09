@@ -35,10 +35,14 @@ func (lex *lexer) Tokenize() ([]token, error) {
 			tokens = append(tokens, lex.makeStr())
 
 		case '-':
-			tokens = append(tokens, lex.makeArrowOrMinus())
+			tok, err := lex.makeArrowOrMinus(&tokens)
+			if err != nil {
+				return []token{}, fmt.Errorf("IllegalChar")
+			}
+			tokens = append(tokens, tok)
 
 		case '+', '/', '*', '%', '^':
-			tok, err := lex.makeOperationAndEqual(&tokens)
+			tok, err := lex.makeOperationAndEqual(&tokens, true)
 			if err != nil {
 				return []token{}, fmt.Errorf("IllegalChar")
 			}
@@ -154,14 +158,18 @@ func (lex *lexer) makeStr() token {
 
 	return token{}
 }
-func (lex *lexer) makeOperationAndEqual(tokens *[]token) (token, error) {
+
+// create tokens for op or op=
+func (lex *lexer) makeOperationAndEqual(tokens *[]token, advance bool) (token, error) {
 	startPos := *lex.pos
 	opType, ok := symbols[lex.currChar]
 	if !ok {
 		return token{}, fmt.Errorf("expected symbol found: %s", lex.currChar)
 
 	}
-	lex.advance(true)
+	if advance {
+		lex.advance(true)
+	}
 	// optimzation here might be needed to use less tokens
 	if lex.currChar == '=' {
 		*tokens = append(*tokens, token{Type: TOKEN_EQ, Pos: startPos})
@@ -176,10 +184,20 @@ func (lex *lexer) makeOperationAndEqual(tokens *[]token) (token, error) {
 
 	return token{Type: opType, Pos: startPos}, nil
 }
-func (lex *lexer) makeArrowOrMinus() token {
+
+// if a token starts with - so it might an arrow , minus or -=
+func (lex *lexer) makeArrowOrMinus(tokens *[]token) (token, error) {
+	startPos := *lex.pos
 	lex.advance(true)
-	return token{}
+
+	if lex.currChar == '>' {
+		lex.advance(true)
+		return token{Type: TOKEN_ARROW, Pos: startPos, EndPos: *lex.pos}, nil
+	}
+	return lex.makeOperationAndEqual(tokens, false)
 }
+
+// a function  that checks if '>' or '<'  are followed by and equals sign '=' to change its type
 func (lex *lexer) makeGtLt() token {
 	lex.advance(true)
 	return token{}
