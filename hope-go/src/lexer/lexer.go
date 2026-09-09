@@ -260,8 +260,10 @@ func (lex *lexer) makeIdentifier() token {
 	return token{Type: TOKEN_KEYWORD, Value: identfier, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeLogicalGate() token {
+	startPos := *lex.pos
+	currSymbol, _ := symbols[lex.currChar]
 	lex.advance(true)
-	return token{}
+	return token{Type: TOKEN_KEYWORD, Value: currSymbol, Pos: startPos, EndPos: *lex.pos}
 }
 
 func isdigit(ch byte) bool {
