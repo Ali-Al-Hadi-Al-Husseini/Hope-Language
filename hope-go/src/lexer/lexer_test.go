@@ -11,10 +11,10 @@ func TestLexer(t *testing.T) {
 		expresion string
 		want      []string
 	}{
-		{"", []string{}},
-		{"123 ", []string{"INTEGER:123"}},
-		{"123 \n", []string{"INTEGER:123", "NEWLINE"}},
-		{"12 + 3 ", []string{"INTEGER:123", "PLUS", "INTEGER:3"}},
+		{"", []string{"EOF"}},
+		{"123 ", []string{"INTEGER:123", "EOF"}},
+		{"123 \n", []string{"INTEGER:123", "NEWLINE", "EOF"}},
+		{"12 + 3 ", []string{"INTEGER:12", "PLUS", "INTEGER:3", "EOF"}},
 		{"(2+1) ", []string{"LPAREN", "INTEGER:2", "PLUS", "INTEGER:1", "RPAREN", "EOF"}},
 		{"(-2+1) ", []string{"LPAREN", "MINUS", "INTEGER:2", "PLUS", "INTEGER:1", "RPAREN", "EOF"}},
 		{"(7 * 2) ", []string{"LPAREN", "INTEGER:7", "MUL", "INTEGER:2", "RPAREN", "EOF"}},
@@ -54,7 +54,7 @@ func TestLexer(t *testing.T) {
 		t.Run(tt.expresion, func(t *testing.T) {
 			lex := CreateLexer("test.hope", tt.expresion)
 
-			tokens, _ := lex.Tokenize()
+			tokens, err := lex.Tokenize()
 
 			got := make([]string, len(tokens))
 			for i, token := range tokens {
@@ -66,8 +66,12 @@ func TestLexer(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				//t.Errorf("lexer(%q) = %v; want %v", tt.expresion, got, tt.want)
-				t.Errorf("Failed TestCase : %d\n", i)
+				if err == nil {
+					t.Errorf("lexer(%q) = %v; want %v", tt.expresion, got, tt.want)
+					t.Errorf("Failed TestCase : %d\n", i)
+				} else {
+					t.Errorf("lexer returned an error: %v", err)
+				}
 			} else {
 				fmt.Printf("Passed TestCase : %d\n", i)
 			}
