@@ -215,8 +215,13 @@ func (lex *lexer) makeGtLt() token {
 	return token{Type: tokType, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeEqual() token {
+	startPos := *lex.pos
 	lex.advance(true)
-	return token{}
+	if lex.currChar == '=' {
+		lex.advance(true)
+		return token{Type: TOKEN_EE, Pos: startPos, EndPos: *lex.pos}
+	}
+	return token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeNotEqual() token {
 	lex.advance(true)
