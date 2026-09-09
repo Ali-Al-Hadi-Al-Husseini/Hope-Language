@@ -154,9 +154,20 @@ func (lex *lexer) makeNewLine() token {
 	return tok
 }
 func (lex *lexer) makeStr() token {
+	skip := false
+	startPos := *lex.pos
+	strStart := lex.pos.Idx
+	strEnd := lex.pos.Idx
+	currQuotes := lex.currChar
 	lex.advance(true)
 
-	return token{}
+	for (lex.currChar != currQuotes || skip) && lex.currChar != 0 {
+		strEnd++
+		lex.advance(true)
+
+	}
+
+	return token{Type: TOKEN_STRING, Value: lex.File.Text[strStart:strEnd], Pos: startPos, EndPos: *lex.pos}
 }
 
 // create tokens for op or op=
