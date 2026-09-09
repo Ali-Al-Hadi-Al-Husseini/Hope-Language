@@ -87,6 +87,7 @@ func (lex *lexer) Tokenize() ([]token, error) {
 
 		}
 	}
+	tokens = append(tokens, token{Type: TOKEN_EOF, Pos: *lex.pos})
 	return tokens, nil
 }
 
@@ -175,7 +176,7 @@ func (lex *lexer) makeOperationAndEqual(tokens *[]token, advance bool) (token, e
 	startPos := *lex.pos
 	opType, ok := symbols[lex.currChar]
 	if !ok {
-		return token{}, fmt.Errorf("expected symbol found: %s", lex.currChar)
+		return token{}, fmt.Errorf("expected symbol found: %c", lex.currChar)
 
 	}
 	if advance {
