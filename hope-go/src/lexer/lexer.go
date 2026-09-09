@@ -154,14 +154,14 @@ func (lex *lexer) makeNewLine() token {
 	return tok
 }
 func (lex *lexer) makeStr() token {
-	skip := false
+	// skip := false
 	startPos := *lex.pos
 	strStart := lex.pos.Idx
 	strEnd := lex.pos.Idx
 	currQuotes := lex.currChar
 	lex.advance(true)
 
-	for (lex.currChar != currQuotes || skip) && lex.currChar != 0 {
+	for (lex.currChar != currQuotes) && lex.currChar != 0 {
 		strEnd++
 		lex.advance(true)
 
@@ -235,12 +235,29 @@ func (lex *lexer) makeEqual() token {
 	return token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeNotEqual() token {
+	startPos := *lex.pos
 	lex.advance(true)
-	return token{}
+	if lex.currChar == '=' {
+		lex.advance(true)
+		return token{Type: TOKEN_NE, Pos: startPos, EndPos: *lex.pos}
+	}
+
+	return token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeIdentifier() token {
-	lex.advance(true)
-	return token{}
+	identIdx := lex.pos.Idx
+	startPos := *lex.pos
+
+	for lex.currChar != 0 && (isLetter(lex.currChar) || isLetter(lex.currChar)) {
+		lex.advance(true)
+	}
+
+	identfier := lex.File.Text[identIdx:lex.pos.Idx]
+	_, ok := KEYWORDS[identfier]
+	if !ok {
+		return token{Type: TOKEN_IDENTIFIER, Value: identfier, Pos: startPos, EndPos: *lex.pos}
+	}
+	return token{Type: TOKEN_KEYWORD, Value: identfier, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeLogicalGate() token {
 	lex.advance(true)
