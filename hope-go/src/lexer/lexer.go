@@ -249,7 +249,7 @@ func (lex *lexer) makeIdentifier() token {
 	identIdx := lex.pos.Idx
 	startPos := *lex.pos
 
-	for lex.currChar != 0 && (isLetter(lex.currChar) || isLetter(lex.currChar)) {
+	for lex.currChar != 0 && (isLetter(lex.currChar) || isdigit(lex.currChar)) {
 		lex.advance(true)
 	}
 
