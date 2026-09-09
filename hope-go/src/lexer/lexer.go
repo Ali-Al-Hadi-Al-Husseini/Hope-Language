@@ -38,7 +38,11 @@ func (lex *lexer) Tokenize() ([]token, error) {
 			tokens = append(tokens, lex.makeArrowOrMinus())
 
 		case '+', '/', '*', '%', '^':
-			tokens = append(tokens, lex.makeOperationAndEqual())
+			tok, err := lex.makeOperationAndEqual(&tokens)
+			if err != nil {
+				return []token{}, fmt.Errorf("IllegalChar")
+			}
+			tokens = append(tokens, tok)
 
 		case '!':
 			tokens = append(tokens, lex.makeNotEqual())
@@ -66,7 +70,7 @@ func (lex *lexer) Tokenize() ([]token, error) {
 			case isdigit(lex.currChar):
 				currToken, err := lex.makeNumber()
 				if err != nil {
-					return []token{}, fmt.Errorf("IllegalChar")
+					return []token{}, err
 				}
 				tokens = append(tokens, currToken)
 
@@ -150,9 +154,27 @@ func (lex *lexer) makeStr() token {
 
 	return token{}
 }
-func (lex *lexer) makeOperationAndEqual() token {
+func (lex *lexer) makeOperationAndEqual(tokens *[]token) (token, error) {
+	startPos := *lex.pos
+	opType, ok := symbols[lex.currChar]
+	if !ok {
+		return token{}, fmt.Errorf("expected symbol found: %s", lex.currChar)
+
+	}
 	lex.advance(true)
-	return token{}
+	// optimzation here might be needed to use less tokens
+	if lex.currChar == '=' {
+		*tokens = append(*tokens, token{Type: TOKEN_EQ, Pos: startPos})
+		if len(*tokens) > 2 {
+			previous := (*tokens)[len(*tokens)-2].Value
+			*tokens = append(*tokens, token{Type: TOKEN_IDENTIFIER, Value: previous, Pos: startPos})
+		}
+		lex.advance(true)
+		return token{Type: opType, Pos: *lex.pos}, nil
+
+	}
+
+	return token{Type: opType, Pos: startPos}, nil
 }
 func (lex *lexer) makeArrowOrMinus() token {
 	lex.advance(true)
