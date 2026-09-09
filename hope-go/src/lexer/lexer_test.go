@@ -13,6 +13,8 @@ func TestLexer(t *testing.T) {
 	}{
 		{"", []string{}},
 		{"123 ", []string{"INTEGER:123"}},
+		{"123 \n", []string{"INTEGER:123", "NEWLINE"}},
+		{"12 + 3 ", []string{"INTEGER:123", "PLUS", "INTEGER:3"}},
 		{"(2+1) ", []string{"LPAREN", "INTEGER:2", "PLUS", "INTEGER:1", "RPAREN", "EOF"}},
 		{"(-2+1) ", []string{"LPAREN", "MINUS", "INTEGER:2", "PLUS", "INTEGER:1", "RPAREN", "EOF"}},
 		{"(7 * 2) ", []string{"LPAREN", "INTEGER:7", "MUL", "INTEGER:2", "RPAREN", "EOF"}},
