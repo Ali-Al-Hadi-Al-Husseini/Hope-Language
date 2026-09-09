@@ -50,6 +50,8 @@ var symbols = map[byte]string{
 	'[': TOKEN_LSQUARE,
 	']': TOKEN_RSQUARE,
 	',': TOKEN_COMMA,
+	'&': "and",
+	'|': "or",
 }
 var KEYWORDS = map[string]bool{
 
