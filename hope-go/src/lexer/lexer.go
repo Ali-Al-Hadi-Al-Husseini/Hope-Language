@@ -112,16 +112,14 @@ func (lex *lexer) makeNumber() (token, error) {
 	start_pos := *lex.pos
 	idx := start_pos.Idx
 
-	for lex.currChar != 0 && isdigit(lex.currChar) {
+	for idx < len(lex.pos.File.Text) && isdigit(lex.currChar) {
 		if lex.currChar == '.' {
 			if dotCount > 0 {
 				return token{}, fmt.Errorf("IllegalChar")
 			}
 			dotCount += 1
-			idx += 1
-		} else {
-			idx += 1
 		}
+		idx += 1
 		lex.advance(true)
 	}
 	if dotCount == 0 {
