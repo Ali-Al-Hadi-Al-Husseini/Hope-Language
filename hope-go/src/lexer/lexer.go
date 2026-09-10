@@ -170,7 +170,7 @@ func (lex *lexer) makeStr() (token, error) {
 		lex.advance(true)
 
 	}
-	fmt.Printf(">>>%c<<<\n", lex.currChar)
+
 	if lex.currChar != currQuotes {
 		return token{}, fmt.Errorf("illgal char")
 	}
@@ -216,8 +216,7 @@ func (lex *lexer) makeArrowOrMinus(tokens *[]token) (token, error) {
 // a function  that checks if '>' or '<'  are followed by and equals sign '=' to change its type
 func (lex *lexer) makeGtLt() token {
 	startPos := *lex.pos
-	tokType := symbols[lex.currChar]
-	lex.advance(true)
+	tokType, _ := symbols[lex.currChar]
 
 	if lex.currChar == '>' && tokType == TOKEN_GT {
 		return token{Type: TOKEN_START, Pos: startPos, EndPos: *lex.pos}
