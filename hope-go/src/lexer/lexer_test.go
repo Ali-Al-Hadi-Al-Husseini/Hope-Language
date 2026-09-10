@@ -29,7 +29,7 @@ func TestLexer(t *testing.T) {
 		{"(9 / 3  * -2 ) ", []string{"LPAREN", "INTEGER:9", "DIV", "INTEGER:3", "MUL", "MINUS", "INTEGER:2", "RPAREN", "EOF"}},
 		{"((9 / 3)  * 0 ) ", []string{"LPAREN", "LPAREN", "INTEGER:9", "DIV", "INTEGER:3", "RPAREN", "MUL", "INTEGER:0", "RPAREN", "EOF"}},
 		{"((9 / 3) / 0 ) ", []string{"LPAREN", "LPAREN", "INTEGER:9", "DIV", "INTEGER:3", "RPAREN", "DIV", "INTEGER:0", "RPAREN", "EOF"}},
-		{" 'abc' * 'xyz'  ", []string{"STRING:abc", "MUL", "STRING:xyz ", "EOF"}},
+		{" 'abc' * 'xyz'  ", []string{"STRING:abc", "MUL", "STRING:xyz", "EOF"}},
 		{"if true >> print('i') ", []string{"KEYWORD:if", "IDENTIFIER:true", "UNTIL", "IDENTIFIER:print", "LPAREN", "STRING:i", "RPAREN", "EOF"}},
 		{"if false >> print(1) ", []string{"KEYWORD:if", "IDENTIFIER:false", "UNTIL", "IDENTIFIER:print", "LPAREN", "INTEGER:1", "RPAREN", "EOF"}},
 		{"if true >> print(1) ", []string{"KEYWORD:if", "IDENTIFIER:true", "UNTIL", "IDENTIFIER:print", "LPAREN", "INTEGER:1", "RPAREN", "EOF"}},
