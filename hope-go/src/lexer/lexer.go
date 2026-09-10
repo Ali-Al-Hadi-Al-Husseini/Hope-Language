@@ -220,8 +220,10 @@ func (lex *lexer) makeGtLt() token {
 	lex.advance(true)
 
 	if lex.currChar == '>' && tokType == TOKEN_GT {
+		lex.advance(true)
 		return token{Type: TOKEN_START, Pos: startPos, EndPos: *lex.pos}
 	} else if lex.currChar == '<' && tokType == TOKEN_LT {
+		lex.advance(true)
 		return token{Type: TOKEN_END, Pos: startPos, EndPos: *lex.pos}
 	}
 	if lex.currChar == '=' {
