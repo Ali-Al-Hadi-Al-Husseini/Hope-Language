@@ -32,7 +32,11 @@ func (lex *lexer) Tokenize() ([]token, error) {
 			tokens = append(tokens, lex.makeNewLine())
 
 		case '"', '\'':
-			tokens = append(tokens, lex.makeStr())
+			tok, err := lex.makeStr()
+			if err != nil {
+				return tokens, err
+			}
+			tokens = append(tokens, tok)
 
 		case '-':
 			tok, err := lex.makeArrowOrMinus(&tokens)
@@ -156,21 +160,23 @@ func (lex *lexer) makeNewLine() token {
 
 	return tok
 }
-func (lex *lexer) makeStr() token {
-	// skip := false
+func (lex *lexer) makeStr() (token, error) {
 	startPos := *lex.pos
-	strStart := lex.pos.Idx
-	strEnd := lex.pos.Idx
+	strStart := lex.pos.Idx + 1
 	currQuotes := lex.currChar
 	lex.advance(true)
 
-	for (lex.currChar != currQuotes) && lex.currChar != 0 {
-		strEnd++
+	for (lex.currChar != currQuotes) && lex.pos.Idx < len(lex.File.Text) {
 		lex.advance(true)
 
 	}
-
-	return token{Type: TOKEN_STRING, Value: lex.File.Text[strStart:strEnd], Pos: startPos, EndPos: *lex.pos}
+	fmt.Printf(">>>%c<<<\n", lex.currChar)
+	if lex.currChar != currQuotes {
+		return token{}, fmt.Errorf("illgal char")
+	}
+	lex.advance(true)
+	val := lex.File.Text[strStart : lex.pos.Idx-1]
+	return token{Type: TOKEN_STRING, Value: val, Pos: startPos, EndPos: *lex.pos}, nil
 }
 
 // create tokens for op or op=
