@@ -52,6 +52,8 @@ var symbols = map[byte]string{
 	',': TOKEN_COMMA,
 	'&': "and",
 	'|': "or",
+	'>': TOKEN_GT,
+	'<': TOKEN_LT,
 }
 var KEYWORDS = map[string]bool{
 
