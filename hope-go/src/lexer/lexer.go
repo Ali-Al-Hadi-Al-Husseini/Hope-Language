@@ -217,6 +217,7 @@ func (lex *lexer) makeArrowOrMinus(tokens *[]token) (token, error) {
 func (lex *lexer) makeGtLt() token {
 	startPos := *lex.pos
 	tokType, _ := symbols[lex.currChar]
+	lex.advance(true)
 
 	if lex.currChar == '>' && tokType == TOKEN_GT {
 		return token{Type: TOKEN_START, Pos: startPos, EndPos: *lex.pos}
