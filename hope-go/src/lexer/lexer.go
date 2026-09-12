@@ -4,13 +4,13 @@ import "fmt"
 
 type lexer struct {
 	currChar byte
-	pos      *position
+	pos      *Position
 	File     *CodeFile
 }
 
 func CreateLexer(fileName string, code string) lexer {
 	fl := CodeFile{Name: fileName, Text: code}
-	pos := position{Idx: -1, Line: -1, Col: -1, File: &fl}
+	pos := Position{Idx: -1, Line: -1, Col: -1, File: &fl}
 	return lexer{currChar: '0', pos: &pos, File: &fl}
 }
 func (lex *lexer) Tokenize() ([]token, error) {
