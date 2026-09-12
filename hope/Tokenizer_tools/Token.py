@@ -1,5 +1,5 @@
 from .Position import Position
-
+from .tokens import *
 class Token():
     def __init__(self, _type: str, value: str = None, start_position: Position = None, end_position: Position = None) -> None:
         self.type = _type
@@ -15,7 +15,7 @@ class Token():
 
 
     def __repr__(self) -> str:
-        if self.value:
+        if self.value or (self.type in (TOKEN_INT,TOKEN_FLOAT) and self.value == 0 ):
             return "{}:{}".format(self.type, self.value)
         return str(f'{self.type}')
 
