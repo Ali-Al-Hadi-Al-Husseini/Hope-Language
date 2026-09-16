@@ -13,8 +13,8 @@ func CreateLexer(fileName string, code string) lexer {
 	pos := Position{Idx: -1, Line: -1, Col: -1, File: &fl}
 	return lexer{currChar: '0', pos: &pos, File: &fl}
 }
-func (lex *lexer) Tokenize() ([]token, error) {
-	tokens := []token{}
+func (lex *lexer) Tokenize() ([]Token, error) {
+	tokens := []Token{}
 
 	lex.advance(true)
 	for lex.pos.Idx < len(lex.File.Text) {
@@ -41,19 +41,19 @@ func (lex *lexer) Tokenize() ([]token, error) {
 		case '-':
 			tok, err := lex.makeArrowOrMinus(&tokens)
 			if err != nil {
-				return []token{}, fmt.Errorf("%v", err)
+				return []Token{}, fmt.Errorf("%v", err)
 			}
 			tokens = append(tokens, tok)
 
 		case '+', '/', '*', '%', '^':
 			opType, ok := symbols[lex.currChar]
 			if !ok {
-				return []token{}, fmt.Errorf("expected symbol found: %c", lex.currChar)
+				return []Token{}, fmt.Errorf("expected symbol found: %c", lex.currChar)
 
 			}
 			tok, err := lex.makeOperationAndEqual(&tokens, opType, true)
 			if err != nil {
-				return []token{}, fmt.Errorf("IllegalChar")
+				return []Token{}, fmt.Errorf("IllegalChar")
 			}
 			tokens = append(tokens, tok)
 
@@ -65,7 +65,7 @@ func (lex *lexer) Tokenize() ([]token, error) {
 
 		case '{', '}', '[', ']', '(', ')', ',':
 			tokens = append(tokens,
-				token{
+				Token{
 					Type: symbols[lex.currChar],
 					Pos:  *lex.pos,
 				})
@@ -82,7 +82,7 @@ func (lex *lexer) Tokenize() ([]token, error) {
 			case isdigit(lex.currChar):
 				currToken, err := lex.makeNumber()
 				if err != nil {
-					return []token{}, err
+					return []Token{}, err
 				}
 				tokens = append(tokens, currToken)
 
@@ -90,12 +90,12 @@ func (lex *lexer) Tokenize() ([]token, error) {
 				tokens = append(tokens, lex.makeIdentifier())
 
 			default:
-				return []token{}, fmt.Errorf("IllegalChar")
+				return []Token{}, fmt.Errorf("IllegalChar")
 			}
 
 		}
 	}
-	tokens = append(tokens, token{Type: TOKEN_EOF, Pos: *lex.pos})
+	tokens = append(tokens, Token{Type: TOKEN_EOF, Pos: *lex.pos})
 	return tokens, nil
 }
 
@@ -111,7 +111,7 @@ func (lex *lexer) advance(advanceChar bool) {
 		lex.currChar = 0
 	}
 }
-func (lex *lexer) makeNumber() (token, error) {
+func (lex *lexer) makeNumber() (Token, error) {
 	dotCount := 0
 	start_pos := *lex.pos
 	idx := start_pos.Idx
@@ -119,7 +119,7 @@ func (lex *lexer) makeNumber() (token, error) {
 	for idx < len(lex.pos.File.Text) && isdigit(lex.currChar) {
 		if lex.currChar == '.' {
 			if dotCount > 0 {
-				return token{}, fmt.Errorf("IllegalChar")
+				return Token{}, fmt.Errorf("IllegalChar")
 			}
 			dotCount += 1
 		}
@@ -127,7 +127,7 @@ func (lex *lexer) makeNumber() (token, error) {
 		lex.advance(true)
 	}
 	if dotCount == 0 {
-		return token{
+		return Token{
 			Type:   TOKEN_INT,
 			Value:  string(lex.File.Text[start_pos.Idx:idx]),
 			Pos:    start_pos,
@@ -135,7 +135,7 @@ func (lex *lexer) makeNumber() (token, error) {
 		}, nil
 	}
 
-	return token{
+	return Token{
 		Type:   TOKEN_FLOAT,
 		Value:  string(lex.File.Text[start_pos.Idx:idx]),
 		Pos:    start_pos,
@@ -143,8 +143,8 @@ func (lex *lexer) makeNumber() (token, error) {
 	}, nil
 
 }
-func (lex *lexer) makeNewLine() token {
-	tok := token{Type: TOKEN_NEWLINE, Pos: *lex.pos}
+func (lex *lexer) makeNewLine() Token {
+	tok := Token{Type: TOKEN_NEWLINE, Pos: *lex.pos}
 	lex.advance(true)
 
 	if lex.currChar == 0 {
@@ -160,7 +160,7 @@ func (lex *lexer) makeNewLine() token {
 
 	return tok
 }
-func (lex *lexer) makeStr() (token, error) {
+func (lex *lexer) makeStr() (Token, error) {
 	startPos := *lex.pos
 	strStart := lex.pos.Idx + 1
 	currQuotes := lex.currChar
@@ -172,15 +172,15 @@ func (lex *lexer) makeStr() (token, error) {
 	}
 
 	if lex.currChar != currQuotes {
-		return token{}, fmt.Errorf("illgal char")
+		return Token{}, fmt.Errorf("illgal char")
 	}
 	lex.advance(true)
 	val := lex.File.Text[strStart : lex.pos.Idx-1]
-	return token{Type: TOKEN_STRING, Value: val, Pos: startPos, EndPos: *lex.pos}, nil
+	return Token{Type: TOKEN_STRING, Value: val, Pos: startPos, EndPos: *lex.pos}, nil
 }
 
 // create tokens for op or op=
-func (lex *lexer) makeOperationAndEqual(tokens *[]token, opType string, advance bool) (token, error) {
+func (lex *lexer) makeOperationAndEqual(tokens *[]Token, opType string, advance bool) (Token, error) {
 	startPos := *lex.pos
 
 	if advance {
@@ -188,70 +188,70 @@ func (lex *lexer) makeOperationAndEqual(tokens *[]token, opType string, advance 
 	}
 	// optimzation here might be needed to use less tokens
 	if lex.currChar == '=' {
-		*tokens = append(*tokens, token{Type: TOKEN_EQ, Pos: startPos})
+		*tokens = append(*tokens, Token{Type: TOKEN_EQ, Pos: startPos})
 		if len(*tokens) > 2 {
 			previous := (*tokens)[len(*tokens)-2].Value
-			*tokens = append(*tokens, token{Type: TOKEN_IDENTIFIER, Value: previous, Pos: startPos})
+			*tokens = append(*tokens, Token{Type: TOKEN_IDENTIFIER, Value: previous, Pos: startPos})
 		}
 		lex.advance(true)
-		return token{Type: opType, Pos: *lex.pos}, nil
+		return Token{Type: opType, Pos: *lex.pos}, nil
 
 	}
 
-	return token{Type: opType, Pos: startPos}, nil
+	return Token{Type: opType, Pos: startPos}, nil
 }
 
-// if a token starts with - so it might an arrow , minus or -=
-func (lex *lexer) makeArrowOrMinus(tokens *[]token) (token, error) {
+// if a Token starts with - so it might an arrow , minus or -=
+func (lex *lexer) makeArrowOrMinus(tokens *[]Token) (Token, error) {
 	startPos := *lex.pos
 	lex.advance(true)
 
 	if lex.currChar == '>' {
 		lex.advance(true)
-		return token{Type: TOKEN_ARROW, Pos: startPos, EndPos: *lex.pos}, nil
+		return Token{Type: TOKEN_ARROW, Pos: startPos, EndPos: *lex.pos}, nil
 	}
 	return lex.makeOperationAndEqual(tokens, TOKEN_MINUS, false)
 }
 
 // a function  that checks if '>' or '<'  are followed by and equals sign '=' to change its type
-func (lex *lexer) makeGtLt() token {
+func (lex *lexer) makeGtLt() Token {
 	startPos := *lex.pos
 	tokType, _ := symbols[lex.currChar]
 	lex.advance(true)
 
 	if lex.currChar == '>' && tokType == TOKEN_GT {
 		lex.advance(true)
-		return token{Type: TOKEN_START, Pos: startPos, EndPos: *lex.pos}
+		return Token{Type: TOKEN_START, Pos: startPos, EndPos: *lex.pos}
 	} else if lex.currChar == '<' && tokType == TOKEN_LT {
 		lex.advance(true)
-		return token{Type: TOKEN_END, Pos: startPos, EndPos: *lex.pos}
+		return Token{Type: TOKEN_END, Pos: startPos, EndPos: *lex.pos}
 	}
 	if lex.currChar == '=' {
 		tokType += "E"
 		lex.advance(true)
 	}
-	return token{Type: tokType, Pos: startPos, EndPos: *lex.pos}
+	return Token{Type: tokType, Pos: startPos, EndPos: *lex.pos}
 }
-func (lex *lexer) makeEqual() token {
+func (lex *lexer) makeEqual() Token {
 	startPos := *lex.pos
 	lex.advance(true)
 	if lex.currChar == '=' {
 		lex.advance(true)
-		return token{Type: TOKEN_EE, Pos: startPos, EndPos: *lex.pos}
+		return Token{Type: TOKEN_EE, Pos: startPos, EndPos: *lex.pos}
 	}
-	return token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
+	return Token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
 }
-func (lex *lexer) makeNotEqual() token {
+func (lex *lexer) makeNotEqual() Token {
 	startPos := *lex.pos
 	lex.advance(true)
 	if lex.currChar == '=' {
 		lex.advance(true)
-		return token{Type: TOKEN_NE, Pos: startPos, EndPos: *lex.pos}
+		return Token{Type: TOKEN_NE, Pos: startPos, EndPos: *lex.pos}
 	}
 
-	return token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
+	return Token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
 }
-func (lex *lexer) makeIdentifier() token {
+func (lex *lexer) makeIdentifier() Token {
 	identIdx := lex.pos.Idx
 	startPos := *lex.pos
 
@@ -262,15 +262,15 @@ func (lex *lexer) makeIdentifier() token {
 	identfier := lex.File.Text[identIdx:lex.pos.Idx]
 	_, ok := KEYWORDS[identfier]
 	if !ok {
-		return token{Type: TOKEN_IDENTIFIER, Value: identfier, Pos: startPos, EndPos: *lex.pos}
+		return Token{Type: TOKEN_IDENTIFIER, Value: identfier, Pos: startPos, EndPos: *lex.pos}
 	}
-	return token{Type: TOKEN_KEYWORD, Value: identfier, Pos: startPos, EndPos: *lex.pos}
+	return Token{Type: TOKEN_KEYWORD, Value: identfier, Pos: startPos, EndPos: *lex.pos}
 }
-func (lex *lexer) makeLogicalGate() token {
+func (lex *lexer) makeLogicalGate() Token {
 	startPos := *lex.pos
 	currSymbol, _ := symbols[lex.currChar]
 	lex.advance(true)
-	return token{Type: TOKEN_KEYWORD, Value: currSymbol, Pos: startPos, EndPos: *lex.pos}
+	return Token{Type: TOKEN_KEYWORD, Value: currSymbol, Pos: startPos, EndPos: *lex.pos}
 }
 
 func isdigit(ch byte) bool {

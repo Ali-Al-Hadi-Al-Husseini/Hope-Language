@@ -1,13 +1,13 @@
 package lexer
 
-type token struct {
+type Token struct {
 	Type   string
 	Value  string
 	Pos    Position
 	EndPos Position
 }
 
-func (tok token) Matches(_type string, value string) bool {
+func (tok Token) Matches(_type string, value string) bool {
 	return tok.Type == _type && tok.Value == value
 }
 
