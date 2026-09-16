@@ -4,7 +4,7 @@ import (
 	lexer "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
 )
 
-type Error struct {
+type LangError struct {
 	Name     string
 	Details  string
 	StartPos *lexer.Position
