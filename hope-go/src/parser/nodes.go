@@ -4,7 +4,9 @@ import (
 	lexer "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
 )
 
-type node struct {
+type BaseNode struct {
+	Token    *lexer.Token
+	Tokens   []*lexer.Token
 	StartPos *lexer.Position
 	EndPos   *lexer.Position
 }
