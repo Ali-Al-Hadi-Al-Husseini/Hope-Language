@@ -7,6 +7,14 @@ type Token struct {
 	EndPos Position
 }
 
+func (tok *Token) String() string {
+	if tok.Value != "" {
+		return tok.Type + ":" + tok.Value
+	}
+	return tok.Type
+
+}
+
 func (tok Token) Matches(_type string, value string) bool {
 	return tok.Type == _type && tok.Value == value
 }
