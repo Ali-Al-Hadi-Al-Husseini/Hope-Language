@@ -12,7 +12,6 @@ type Node interface {
 type BaseNode struct {
 	Name     string
 	Token    *lexer.Token
-	Tokens   []*lexer.Token
 	StartPos *lexer.Position
 	EndPos   *lexer.Position
 }
