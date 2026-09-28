@@ -28,3 +28,16 @@ type StringNode struct {
 type NumberNode struct {
 	BaseNode
 }
+
+type ListNode struct {
+	Elements []Node
+	BaseNode
+}
+
+func (node *ListNode) String() string {
+	bodyNodes := make([]string, 0, len(node.Elements))
+	for idx, elemn := range node.Elements {
+		bodyNodes[idx] = elemn.String()
+	}
+	return fmt.Sprintf("ListNode__%v", bodyNodes)
+}
