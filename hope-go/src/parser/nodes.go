@@ -50,3 +50,12 @@ type ListAcssesNode struct {
 func (node *ListAcssesNode) String() string {
 	return fmt.Sprintf("__%v__%v__ListacssesNode", node.Ident, node.Index)
 }
+
+type UnaryOperationNode struct {
+	node Node
+	BaseNode
+}
+
+func (node *UnaryOperationNode) String() string {
+	return fmt.Sprintf("(%v), %v ", node.Token, node.node)
+}
