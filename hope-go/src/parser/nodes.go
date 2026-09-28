@@ -6,6 +6,9 @@ import (
 	lexer "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
 )
 
+type Node interface {
+	String() string
+}
 type BaseNode struct {
 	Name     string
 	Token    *lexer.Token
@@ -19,5 +22,9 @@ func (node *BaseNode) String() string {
 }
 
 type StringNode struct {
+	BaseNode
+}
+
+type NumberNode struct {
 	BaseNode
 }
