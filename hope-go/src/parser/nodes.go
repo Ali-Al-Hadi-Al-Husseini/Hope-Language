@@ -88,3 +88,15 @@ type IfNode struct {
 func (node *IfNode) String() string {
 	return fmt.Sprintf("%v__%v__IfNode", node.Cases, node.ElseCases)
 }
+
+type ReturnNode struct {
+	node Node
+	BaseNode
+}
+
+type BreakNode struct {
+	BaseNode
+}
+type ContinueNode struct {
+	BaseNode
+}
