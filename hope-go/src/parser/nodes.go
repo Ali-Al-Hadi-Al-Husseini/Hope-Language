@@ -69,3 +69,22 @@ type BinOpertaionNode struct {
 func (node *BinOpertaionNode) String() string {
 	return fmt.Sprintf("( %v %v %v )", node.LeftNode, node.Token, node.RightNode)
 }
+
+type VarAssignNode struct {
+	ValueNode Node
+	BaseNode
+}
+
+type VarAccessNode struct {
+	BaseNode
+}
+
+type IfNode struct {
+	Cases     Node
+	ElseCases Node
+	BaseNode
+}
+
+func (node *IfNode) String() string {
+	return fmt.Sprintf("%v__%v__IfNode", node.Cases, node.ElseCases)
+}
