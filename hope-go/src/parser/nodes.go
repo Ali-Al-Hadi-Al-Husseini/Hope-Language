@@ -52,10 +52,20 @@ func (node *ListAcssesNode) String() string {
 }
 
 type UnaryOperationNode struct {
-	node Node
+	Node Node
 	BaseNode
 }
 
 func (node *UnaryOperationNode) String() string {
-	return fmt.Sprintf("(%v), %v ", node.Token, node.node)
+	return fmt.Sprintf("(%v), %v ", node.Token, node.Node)
+}
+
+type BinOpertaionNode struct {
+	LeftNode  Node
+	RightNode Node
+	BaseNode
+}
+
+func (node *BinOpertaionNode) String() string {
+	return fmt.Sprintf("( %v), %v ", node.LeftNode, node.Token, node.RightNode)
 }
