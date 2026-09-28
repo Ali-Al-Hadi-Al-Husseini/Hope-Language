@@ -67,5 +67,5 @@ type BinOpertaionNode struct {
 }
 
 func (node *BinOpertaionNode) String() string {
-	return fmt.Sprintf("( %v), %v ", node.LeftNode, node.Token, node.RightNode)
+	return fmt.Sprintf("( %v %v %v )", node.LeftNode, node.Token, node.RightNode)
 }
