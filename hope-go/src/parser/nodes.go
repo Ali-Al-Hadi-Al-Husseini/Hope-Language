@@ -41,3 +41,13 @@ func (node *ListNode) String() string {
 	}
 	return fmt.Sprintf("ListNode__%v", bodyNodes)
 }
+
+type ListAcssesNode struct {
+	Ident string
+	Index string
+	BaseNode
+}
+
+func (node *ListAcssesNode) String() string {
+	return fmt.Sprintf("__%v__%v__ListacssesNode", node.Ident, node.Index)
+}
