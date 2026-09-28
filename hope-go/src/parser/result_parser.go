@@ -22,3 +22,15 @@ func (res *ParserResult) Register(newResult ParserResult) Node {
 	}
 	return newResult.node
 }
+
+func (res *ParserResult) Succses(node Node) *ParserResult {
+	res.node = node
+	return res
+}
+
+func (res *ParserResult) Failure(err error) *ParserResult {
+	if res.Err == nil || res.lastAdvanceCount == 0 {
+		res.Err = err
+	}
+	return res
+}
