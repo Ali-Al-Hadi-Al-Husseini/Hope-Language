@@ -9,6 +9,13 @@ import (
 type Node interface {
 	String() string
 }
+
+type Expr interface {
+	Expr()
+}
+type Stmt interface {
+	Stmt()
+}
 type BaseNode struct {
 	Name     string
 	Token    *lexer.Token
@@ -87,6 +94,19 @@ type IfNode struct {
 
 func (node *IfNode) String() string {
 	return fmt.Sprintf("%v__%v__IfNode", node.Cases, node.ElseCases)
+}
+
+type ForNode struct {
+	StartValueNode Node
+	EndValueNode   Node
+	VarNameNode    Node
+	SkipValueNode  Node
+	BodyNode       Node
+	BaseNode
+}
+
+func (node *ForNode) String() string {
+	return ""
 }
 
 type ReturnNode struct {
