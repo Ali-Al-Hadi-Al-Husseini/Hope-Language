@@ -97,11 +97,12 @@ func (node *IfNode) String() string {
 }
 
 type ForNode struct {
-	StartValueNode Node
-	EndValueNode   Node
-	VarNameNode    Node
-	SkipValueNode  Node
-	BodyNode       Node
+	StartValueNode   Node
+	EndValueNode     Node
+	VarNameNode      Node
+	SkipValueNode    Node
+	BodyNode         Node
+	ShouldReturnNull bool
 	BaseNode
 }
 
@@ -109,6 +110,27 @@ func (node *ForNode) String() string {
 	return ""
 }
 
+type WhileNode struct {
+	ConditionNode    Node
+	BodyNode         Node
+	ShouldReturnNull bool
+	BaseNode
+}
+
+type FuncDefNode struct {
+	ArgNameTokens    []lexer.Token
+	BodyNode         Node
+	VarNameToken     lexer.Token
+	ShouldReturnNull bool
+
+	BaseNode
+}
+
+type CallNode struct {
+	NodeToCall Node
+	ArgNodes   []Node
+	BaseNode
+}
 type ReturnNode struct {
 	node Node
 	BaseNode
