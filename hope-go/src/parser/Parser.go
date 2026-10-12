@@ -116,6 +116,13 @@ func (par *Parser) statement() ParserResult {
 			BaseNode: BaseNode{StartPos: &startPos, EndPos: &par.currToken.EndPos},
 		})
 	}
+	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "break") {
+		par.RegisterAdvancement(res)
+
+		return *res.Succses(&BreakNode{
+			BaseNode: BaseNode{StartPos: &startPos, EndPos: &par.currToken.EndPos},
+		})
+	}
 	return res
 }
 
