@@ -19,6 +19,11 @@ func (par *Parser) advance() lexer.Token {
 	return par.currToken
 }
 
+func (par *Parser) RegisterAdvancement(res ParserResult) {
+	res.RegisterAdvancement()
+	par.advance()
+}
+
 func (par *Parser) reverse(amount int) lexer.Token {
 	par.idx -= amount
 	if par.idx >= 0 && par.idx < len(par.Tokens) {
@@ -43,7 +48,54 @@ func (par *Parser) Parse() ParserResult {
 
 func (par *Parser) GetStatments() ParserResult {
 	res := ParserResult{}
+	stmts := []Node{}
+	startPos := par.currToken.Pos
+
+	for par.currToken.Type == lexer.TOKEN_NEWLINE {
+		par.RegisterAdvancement(res)
+	}
+
+	statement := res.Register(par.statement())
+	if res.Err != nil {
+		return res
+	}
+	stmts = append(stmts, statement)
+	moreStatements := true
+
+	for true {
+		newLineCount := 0
+		for par.currToken.Type == lexer.TOKEN_NEWLINE {
+			par.RegisterAdvancement(res)
+			newLineCount += 1
+		}
+
+		if newLineCount == 0 {
+			moreStatements = false
+		}
+
+		if !moreStatements {
+			break
+		}
+		statement = res.Register(par.statement())
+		if statement == nil {
+			par.reverse(res.reverseCount)
+			moreStatements = false
+			continue
+		}
+		stmts = append(stmts, statement)
+	}
+	return *res.Succses(&ListNode{
+		Elements: stmts,
+		BaseNode: BaseNode{
+			StartPos: &startPos,
+			EndPos:   &par.currToken.Pos,
+		},
+	})
+
+}
+
+func (par *Parser) statement() ParserResult {
+	res := ParserResult{}
 
 	return res
-
 }
