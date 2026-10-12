@@ -96,6 +96,22 @@ func (par *Parser) GetStatments() ParserResult {
 
 func (par *Parser) statement() ParserResult {
 	res := ParserResult{}
+	startPos := par.currToken.Pos
 
+	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "return") {
+		par.RegisterAdvancement(res)
+		expr, err := res.TryRegister(par.Expression())
+		if err != nil {
+			par.reverse(res.reverseCount)
+		}
+		return *res.Succses(&ReturnNode{
+			node:     expr,
+			BaseNode: BaseNode{StartPos: &startPos, EndPos: &par.currToken.EndPos},
+		})
+	}
 	return res
+}
+
+func (par *Parser) Expression() ParserResult {
+
 }
