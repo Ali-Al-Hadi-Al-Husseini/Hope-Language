@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	LangErr "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/langErr"
 	"github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
 )
@@ -123,9 +125,57 @@ func (par *Parser) statement() ParserResult {
 			BaseNode: BaseNode{StartPos: &startPos, EndPos: &par.currToken.EndPos},
 		})
 	}
-	return res
+
+	expr := res.Register(par.Expression())
+	if res.Err != nil {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  "Expected 'let', int, float, identifier, keyword,  '+', '-' or '(' ",
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.Pos,
+		})
+	}
+	return *res.Succses(expr)
 }
 
 func (par *Parser) Expression() ParserResult {
+	res := ParserResult{}
 
+	for par.currToken.Type == lexer.TOKEN_NEWLINE {
+		par.RegisterAdvancement(res)
+	}
+
+	if par.currToken.Matches(lexer.TOKEN_IDENTIFIER, "let") {
+		par.RegisterAdvancement(res)
+
+		if par.currToken.Type != lexer.TOKEN_IDENTIFIER {
+			return *res.Failure(&LangErr.LangError{
+				Name:    "InvalidSyntaxErorr",
+				Details: fmt.Sprintf("Expected identifier found %s '%s'", par.currToken.Type, par.currToken.Value),
+			})
+		}
+
+		varName := par.currToken
+		par.RegisterAdvancement(res)
+
+		if par.currToken.Type != lexer.TOKEN_EQ {
+			return *res.Failure(&LangErr.LangError{
+				Name:    "InvalidSyntaxErorr",
+				Details: fmt.Sprintf("Expected '=' found %s '%s'", par.currToken.Type, par.currToken.Value),
+			})
+		}
+
+		par.RegisterAdvancement(res)
+		expr := res.Register(par.Expression())
+
+		if res.Err != nil {
+			return res
+		}
+		return *res.Succses(&VarAssignNode{
+			NameToken: varName,
+			ValueNode: expr,
+		})
+	}
+
+	return res
 }
