@@ -178,7 +178,7 @@ func (par *Parser) Expression() ParserResult {
 			ValueNode: expr,
 		})
 	}
-	node := res.Register(par.BinOpertaion(par.Comparison_expression, []string{"and", "or"}))
+	node := res.Register(par.BinOperation(par.Comparison_expression, []string{"and", "or"}))
 	if res.Err != nil {
 		return *res.Failure(&LangErr.LangError{
 			Name:     "InvalidSyntaxErorr",
@@ -190,10 +190,42 @@ func (par *Parser) Expression() ParserResult {
 	return *res.Succses(node)
 }
 
-func (par *Parser) BinOpertaion(operationFunc func() ParserResult, operations []string) ParserResult {
+func (par *Parser) BinOperation(operationFunc func() ParserResult, operations []string) ParserResult {
 	res := ParserResult{}
+	left := res.Register(operationFunc())
+	if res.Err != nil {
+		return res
+	}
+	for {
+		matched := false
 
-	return res
+		for _, op := range operations {
+			if par.currToken.Type == "KEYWORD" {
+				if par.currToken.Value == op {
+					matched = true
+					break
+				}
+
+			} else if par.currToken.Type == op {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			break
+		}
+		opToken := par.currToken
+		res.RegisterAdvancement()
+		right := res.Register(operationFunc())
+
+		left = &BinOpertaionNode{
+			LeftNode:  left,
+			RightNode: right,
+			Operation: opToken,
+		}
+	}
+
+	return *res.Succses(left)
 }
 
 func (par *Parser) Comparison_expression() ParserResult {
