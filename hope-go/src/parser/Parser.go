@@ -160,8 +160,10 @@ func (par *Parser) Expression() ParserResult {
 
 		if par.currToken.Type != lexer.TOKEN_EQ {
 			return *res.Failure(&LangErr.LangError{
-				Name:    "InvalidSyntaxErorr",
-				Details: fmt.Sprintf("Expected '=' found %s '%s'", par.currToken.Type, par.currToken.Value),
+				Name:     "InvalidSyntaxErorr",
+				Details:  fmt.Sprintf("Expected '=' found %s '%s'", par.currToken.Type, par.currToken.Value),
+				StartPos: &par.currToken.Pos,
+				EndPos:   &par.currToken.EndPos,
 			})
 		}
 
@@ -176,6 +178,25 @@ func (par *Parser) Expression() ParserResult {
 			ValueNode: expr,
 		})
 	}
+	node := res.Register(par.BinOpertaion(par.Comparison_expression, []string{"and", "or"}))
+	if res.Err != nil {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  "Expected 'let', int, float, identifier, '+', '-' or '(' ",
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+		})
+	}
+	return *res.Succses(node)
+}
 
+func (par *Parser) BinOpertaion(operationFunc func() ParserResult, operations []string) ParserResult {
+	res := ParserResult{}
+
+	return res
+}
+
+func (par *Parser) Comparison_expression() ParserResult {
+	res := ParserResult{}
 	return res
 }
