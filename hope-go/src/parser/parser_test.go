@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -56,5 +57,5 @@ func TestParser(t *testing.T) {
 	// 		fmt.Printf("Passed TestCase : %d\n", i)
 	// 	}
 	// }
-
+	fmt.Println(testCases)
 }
