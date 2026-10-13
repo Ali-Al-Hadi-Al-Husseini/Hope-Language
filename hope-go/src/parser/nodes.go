@@ -78,6 +78,7 @@ func (node *BinOpertaionNode) String() string {
 }
 
 type VarAssignNode struct {
+	NameToken lexer.Token
 	ValueNode Node
 	BaseNode
 }
