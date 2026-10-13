@@ -69,6 +69,7 @@ func (node *UnaryOperationNode) String() string {
 
 type BinOpertaionNode struct {
 	LeftNode  Node
+	Operation lexer.Token
 	RightNode Node
 	BaseNode
 }
