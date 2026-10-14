@@ -256,10 +256,55 @@ func (par *Parser) ComparisonExpression() ParserResult {
 	return *res.Succses(node)
 }
 
-func (par *Parser) ArithmeticExpression() ParserResult
-func (par *Parser) Factor() ParserResult
-func (par *Parser) Term() ParserResult
-func (par *Parser) Power() ParserResult
+func (par *Parser) ArithmeticExpression() ParserResult {
+	return par.BinOperation(par.Term, []string{lexer.TOKEN_PLUS, lexer.TOKEN_MINUS})
+}
+func (par *Parser) Factor() ParserResult {
+	res := ParserResult{}
+	token := par.currToken
+
+	if par.currToken.Type == lexer.TOKEN_PLUS || par.currToken.Type == lexer.TOKEN_MINUS {
+		par.RegisterAdvancement(res)
+		factor := res.Register(par.Factor())
+		if res.Err != nil {
+			return res
+		}
+		return *res.Succses(
+			&UnaryOperationNode{
+				OpToken: token,
+				Node:    factor,
+			})
+	}
+
+	return par.Power()
+}
+
+func (par *Parser) Term() ParserResult {
+	return par.BinOperation(par.Factor, []string{lexer.TOKEN_MUL, lexer.TOKEN_DIV, lexer.TOKEN_MODULE})
+
+}
+func (par *Parser) Power() ParserResult {
+	res := ParserResult{}
+	left := res.Register(par.Call())
+	if res.Err != nil {
+		return res
+	}
+
+	if par.currToken.Type == lexer.TOKEN_POW {
+
+		opToken := par.currToken
+		res.RegisterAdvancement()
+		right := res.Register(par.Factor())
+
+		left = &BinOpertaionNode{
+			LeftNode:  left,
+			RightNode: right,
+			Operation: opToken,
+		}
+	}
+
+	return *res.Succses(left)
+}
 func (par *Parser) Most() ParserResult
 func (par *Parser) Call() ParserResult
 func (par *Parser) IfElifMaker() ParserResult
