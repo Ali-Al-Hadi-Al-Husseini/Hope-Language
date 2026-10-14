@@ -257,3 +257,17 @@ func (par *Parser) ComparisonExpression() ParserResult {
 }
 
 func (par *Parser) ArithmeticExpression() ParserResult
+func (par *Parser) Factor() ParserResult
+func (par *Parser) Term() ParserResult
+func (par *Parser) Power() ParserResult
+func (par *Parser) Most() ParserResult
+func (par *Parser) Call() ParserResult
+func (par *Parser) IfElifMaker() ParserResult
+func (par *Parser) IfExpression() ParserResult
+func (par *Parser) ElseExpression() ParserResult
+func (par *Parser) ElifElseExpression() ParserResult
+func (par *Parser) ListCallExpression() ParserResult
+func (par *Parser) ForExpression() ParserResult
+func (par *Parser) WhileExpression() ParserResult
+func (par *Parser) FuncExpression() ParserResult
+func (par *Parser) ListExpression() ParserResult
