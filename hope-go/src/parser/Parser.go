@@ -330,6 +330,57 @@ func (par *Parser) Most() ParserResult {
 		}
 		return *res.Succses(expr)
 
+	case lexer.TOKEN_LPAREN:
+		par.RegisterAdvancement(res)
+		expr := res.Register(par.Expression())
+		if res.Err != nil {
+			return res
+		}
+
+		if par.currToken.Type == lexer.TOKEN_RPARENT {
+			par.RegisterAdvancement(res)
+			return *res.Succses(expr)
+		} else {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				Details:  "Expected ')' ",
+				StartPos: &par.currToken.Pos,
+				EndPos:   &par.currToken.EndPos,
+			})
+		}
+
+	case lexer.TOKEN_IDENTIFIER:
+
+	default:
+		switch {
+		case token.Matches(lexer.TOKEN_KEYWORD, "if"):
+			expr := res.Register(par.IfExpression())
+			if res.Err != nil {
+				return res
+			}
+			return *res.Succses(expr)
+
+		case token.Matches(lexer.TOKEN_KEYWORD, "while"):
+			expr := res.Register(par.WhileExpression())
+			if res.Err != nil {
+				return res
+			}
+			return *res.Succses(expr)
+		case token.Matches(lexer.TOKEN_KEYWORD, "for"):
+			expr := res.Register(par.ForExpression())
+			if res.Err != nil {
+				return res
+			}
+			return *res.Succses(expr)
+		case token.Matches(lexer.TOKEN_KEYWORD, "func"):
+			expr := res.Register(par.FuncExpression())
+			if res.Err != nil {
+				return res
+			}
+			return *res.Succses(expr)
+
+		}
+
 	}
 	return *res.Failure(&LangErr.LangError{
 		Name:     "InvalidSyntaxErorr",
