@@ -306,7 +306,52 @@ func (par *Parser) Power() ParserResult {
 	return *res.Succses(left)
 }
 func (par *Parser) Most() ParserResult
-func (par *Parser) Call() ParserResult
+func (par *Parser) Call() ParserResult {
+	res := ParserResult{}
+	most := res.Register(par.Most())
+	if res.Err != nil {
+		return res
+	}
+
+	if par.currToken.Type == lexer.TOKEN_LPAREN {
+		par.RegisterAdvancement(res)
+		var arguments []Node
+
+		if par.currToken.Type == lexer.TOKEN_RPARENT {
+			par.RegisterAdvancement(res)
+		} else {
+			arguments = append(arguments, res.Register(par.Expression()))
+			if res.Err != nil {
+				return res
+			}
+
+			for par.currToken.Type == lexer.TOKEN_COMMA {
+				par.RegisterAdvancement(res)
+				arguments = append(arguments, res.Register(par.Expression()))
+				if res.Err != nil {
+					return res
+				}
+
+			}
+			if par.currToken.Type != lexer.TOKEN_RPARENT {
+				return *res.Failure(&LangErr.LangError{
+					Name:     "InvalidSyntaxErorr",
+					Details:  "Expected ',' or ')'",
+					StartPos: &par.currToken.Pos,
+					EndPos:   &par.currToken.Pos,
+				})
+			}
+			return *res.Succses(&CallNode{
+				NodeToCall: most,
+				ArgNodes:   arguments,
+			})
+
+		}
+	}
+
+	return *res.Succses(most)
+}
+
 func (par *Parser) IfElifMaker() ParserResult
 func (par *Parser) IfExpression() ParserResult
 func (par *Parser) ElseExpression() ParserResult
