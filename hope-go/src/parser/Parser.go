@@ -178,7 +178,7 @@ func (par *Parser) Expression() ParserResult {
 			ValueNode: expr,
 		})
 	}
-	node := res.Register(par.BinOperation(par.Comparison_expression, []string{"and", "or"}))
+	node := res.Register(par.BinOperation(par.ComparisonExpression, []string{"and", "or"}))
 	if res.Err != nil {
 		return *res.Failure(&LangErr.LangError{
 			Name:     "InvalidSyntaxErorr",
@@ -228,7 +228,32 @@ func (par *Parser) BinOperation(operationFunc func() ParserResult, operations []
 	return *res.Succses(left)
 }
 
-func (par *Parser) Comparison_expression() ParserResult {
+func (par *Parser) ComparisonExpression() ParserResult {
 	res := ParserResult{}
-	return res
+
+	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "not") {
+		opToken := par.currToken
+		par.RegisterAdvancement(res)
+		node := res.Register((par.ComparisonExpression()))
+		if res.Err != nil {
+			return res
+		}
+		return *res.Succses(&UnaryOperationNode{
+			OpToken: opToken,
+			Node:    node,
+		})
+
+	}
+	node := res.Register(par.BinOperation(par.ArithmeticExpression, []string{lexer.TOKEN_EE, lexer.TOKEN_NE, lexer.TOKEN_LT, lexer.TOKEN_GT, lexer.TOKEN_GTE, lexer.TOKEN_LTE}))
+	if res.Err != nil {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  "Expected int, float, identifier, keyword, function call, '+', '-' , '(' , '[' or 'not' ",
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+		})
+	}
+	return *res.Succses(node)
 }
+
+func (par *Parser) ArithmeticExpression() ParserResult
