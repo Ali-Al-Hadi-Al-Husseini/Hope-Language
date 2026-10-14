@@ -305,7 +305,39 @@ func (par *Parser) Power() ParserResult {
 
 	return *res.Succses(left)
 }
-func (par *Parser) Most() ParserResult
+
+// atom
+func (par *Parser) Most() ParserResult {
+	res := ParserResult{}
+	token := par.currToken
+
+	switch token.Type {
+	case lexer.TOKEN_FLOAT, lexer.TOKEN_INT:
+		par.RegisterAdvancement(res)
+		return *res.Succses(&NumberNode{BaseNode: BaseNode{
+			Token: &token},
+		})
+
+	case lexer.TOKEN_STRING:
+		par.RegisterAdvancement(res)
+		return *res.Succses(&StringNode{
+			BaseNode: BaseNode{Token: &token}})
+
+	case lexer.TOKEN_LSQUARE:
+		expr := res.Register(par.ListExpression())
+		if res.Err != nil {
+			return res
+		}
+		return *res.Succses(expr)
+
+	}
+	return *res.Failure(&LangErr.LangError{
+		Name:     "InvalidSyntaxErorr",
+		Details:  "Expected int, float, identifier, '+', '-' , '('  or '[' ",
+		StartPos: &token.Pos,
+		EndPos:   &token.EndPos,
+	})
+}
 func (par *Parser) Call() ParserResult {
 	res := ParserResult{}
 	most := res.Register(par.Most())
