@@ -59,7 +59,8 @@ func (node *ListAcssesNode) String() string {
 }
 
 type UnaryOperationNode struct {
-	Node Node
+	OpToken lexer.Token
+	Node    Node
 	BaseNode
 }
 
