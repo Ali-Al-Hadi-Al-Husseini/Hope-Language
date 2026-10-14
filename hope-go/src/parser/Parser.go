@@ -350,6 +350,60 @@ func (par *Parser) Most() ParserResult {
 		}
 
 	case lexer.TOKEN_IDENTIFIER:
+		par.RegisterAdvancement(res)
+		identifierTok := token
+		identifier := token.Value
+
+		if par.currToken.Type == lexer.TOKEN_EQ {
+			par.RegisterAdvancement(res)
+
+			newValue := res.Register(par.Expression())
+			if res.Err != nil {
+				return res
+			}
+			return *res.Succses(&VarAssignNode{
+				NameToken: token,
+				ValueNode: newValue,
+			})
+		} else if par.currToken.Type == lexer.TOKEN_LSQUARE {
+			par.RegisterAdvancement(res)
+
+			if par.currToken.Type == lexer.TOKEN_INT || par.currToken.Type == lexer.TOKEN_IDENTIFIER {
+				index := par.currToken
+				par.RegisterAdvancement(res)
+
+				if par.currToken.Type != lexer.TOKEN_RSQUARE {
+					return *res.Failure(&LangErr.LangError{
+						Name:     "InvalidSyntaxErorr",
+						Details:  fmt.Sprintf("Expected ']' after index %s", index.Value),
+						StartPos: &par.currToken.Pos,
+						EndPos:   &par.currToken.EndPos,
+					})
+				}
+
+				endPos := par.currToken.EndPos
+				par.RegisterAdvancement(res)
+				return *res.Succses(&ListAcssesNode{
+					Ident: identifier,
+					Index: index.Value,
+					BaseNode: BaseNode{
+						StartPos: &token.Pos,
+						EndPos:   &endPos,
+					},
+				})
+			}
+		} else {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				Details:  "Expected index (integer or identifier) after [ ",
+				StartPos: &par.currToken.Pos,
+				EndPos:   &par.currToken.EndPos,
+			})
+		}
+
+		return *res.Succses(&VarAccessNode{
+			BaseNode: BaseNode{Token: &identifierTok},
+		})
 
 	default:
 		switch {
