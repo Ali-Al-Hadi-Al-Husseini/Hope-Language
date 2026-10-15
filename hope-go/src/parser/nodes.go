@@ -113,6 +113,12 @@ func (node *ForNode) String() string {
 	return ""
 }
 
+type ControlFlow struct {
+	Cases    []Node
+	ElseCase Node
+	BaseNode
+}
+
 type WhileNode struct {
 	ConditionNode    Node
 	BodyNode         Node
