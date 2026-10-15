@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	LangErr "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/langErr"
+	LangErr "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/LangErr"
 	"github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
 )
 
@@ -493,8 +493,115 @@ func (par *Parser) IfElifMaker() ParserResult
 func (par *Parser) IfExpression() ParserResult
 func (par *Parser) ElseExpression() ParserResult
 func (par *Parser) ElifElseExpression() ParserResult
-func (par *Parser) ListCallExpression() ParserResult
-func (par *Parser) ForExpression() ParserResult
+func (par *Parser) ListCallExpression() ParserResult {
+	res := ParserResult{}
+	par.RegisterAdvancement(res)
+	return res
+}
+func (par *Parser) ForExpression() ParserResult {
+	res := ParserResult{}
+	par.RegisterAdvancement(res)
+
+	if par.currToken.Type != lexer.TOKEN_IDENTIFIER {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+			Details:  fmt.Sprintf("Expected Identifier after For loop declartion found %s '%s'", par.currToken.Type, par.currToken.Value),
+		})
+	}
+
+	PointerName := par.currToken
+	par.RegisterAdvancement(res)
+
+	if par.currToken.Type != lexer.TOKEN_EQ {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+			Details:  fmt.Sprintf("Expected '=' after identifier found  %s '%s'", par.currToken.Type, par.currToken.Value),
+		})
+	}
+
+	par.RegisterAdvancement(res)
+	startingPointer := res.Register(par.Expression())
+	if res.Err != nil {
+		return res
+	}
+
+	if par.currToken.Type != lexer.TOKEN_ARROW {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+			Details:  fmt.Sprintf("Expected '->'  found %s '%s'", par.currToken.Type, par.currToken.Value),
+		})
+	}
+	par.RegisterAdvancement(res)
+
+	endPointer := res.Register(par.Expression())
+	if res.Err != nil {
+		return res
+	}
+	var skipVal Node
+
+	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "skip") {
+		par.RegisterAdvancement(res)
+		skipVal = res.Register(par.Expression())
+
+		if res.Err != nil {
+			return res
+		}
+	}
+	if par.currToken.Type != lexer.TOKEN_START {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+			Details:  fmt.Sprintf("Expected '>>'  found %s '%s'", par.currToken.Type, par.currToken.Value),
+		})
+	}
+	par.RegisterAdvancement(res)
+	if par.currToken.Type == lexer.TOKEN_NEWLINE {
+		par.RegisterAdvancement(res)
+
+		bodyContent := res.Register(par.GetStatments())
+		if res.Err != nil {
+			return res
+		}
+		if par.currToken.Type != lexer.TOKEN_END {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				StartPos: &par.currToken.Pos,
+				EndPos:   &par.currToken.EndPos,
+				Details:  fmt.Sprintf("Expected '<<'  found %s '%s'", par.currToken.Type, par.currToken.Value),
+			})
+		}
+		par.RegisterAdvancement(res)
+		return *res.Succses(&ForNode{
+			VarNameNode:      &PointerName,
+			StartValueNode:   startingPointer,
+			EndValueNode:     endPointer,
+			SkipValueNode:    skipVal,
+			BodyNode:         bodyContent,
+			ShouldReturnNull: true,
+		})
+
+	}
+
+	bodyContent := res.Register(par.statement())
+	if res.Err != nil {
+		return res
+	}
+	return *res.Succses(&ForNode{
+		VarNameNode:      &PointerName,
+		StartValueNode:   startingPointer,
+		EndValueNode:     endPointer,
+		SkipValueNode:    skipVal,
+		BodyNode:         bodyContent,
+		ShouldReturnNull: false,
+	})
+}
 func (par *Parser) WhileExpression() ParserResult
 func (par *Parser) FuncExpression() ParserResult
 func (par *Parser) ListExpression() ParserResult
