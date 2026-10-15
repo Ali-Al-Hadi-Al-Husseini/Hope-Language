@@ -604,4 +604,50 @@ func (par *Parser) ForExpression() ParserResult {
 }
 func (par *Parser) WhileExpression() ParserResult
 func (par *Parser) FuncExpression() ParserResult
-func (par *Parser) ListExpression() ParserResult
+func (par *Parser) ListExpression() ParserResult {
+	res := ParserResult{}
+	var elements []Node
+	start := par.currToken.Pos
+
+	par.RegisterAdvancement(res)
+	if par.currToken.Type == lexer.TOKEN_RSQUARE {
+		par.RegisterAdvancement(res)
+
+	} else {
+		elements = append(elements, res.Register(par.Expression()))
+		if res.Err != nil {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				Details:  fmt.Sprintf("Expected ']' , keyword, identifier  or values found %s '%s' ", par.currToken.Type, par.currToken.Value),
+				StartPos: &start,
+				EndPos:   &par.currToken.EndPos,
+			})
+		}
+
+		for par.currToken.Type == lexer.TOKEN_COMMA {
+			par.RegisterAdvancement(res)
+			elements = append(elements, res.Register(par.Expression()))
+			if res.Err != nil {
+				return res
+			}
+		}
+
+		if par.currToken.Type != lexer.TOKEN_RSQUARE {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				Details:  fmt.Sprintf("Expected ',' or ']' found %s '%s' ", par.currToken.Type, par.currToken.Value),
+				StartPos: &start,
+				EndPos:   &par.currToken.EndPos,
+			})
+		}
+		par.RegisterAdvancement(res)
+	}
+
+	return *res.Succses(&ListNode{
+		Elements: elements,
+		BaseNode: BaseNode{
+			StartPos: &start,
+			EndPos:   &par.currToken.EndPos,
+		},
+	})
+}
