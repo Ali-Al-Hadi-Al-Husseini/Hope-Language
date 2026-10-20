@@ -493,6 +493,119 @@ func (par *Parser) IfElifMaker() ParserResult
 func (par *Parser) IfExpression() ParserResult
 func (par *Parser) ElseExpression() ParserResult
 func (par *Parser) ElifElseExpression() ParserResult
+func (par *Parser) FuncExpression() ParserResult {
+	res := ParserResult{}
+	par.RegisterAdvancement(res)
+	var funcName lexer.Token
+
+	if par.currToken.Type == lexer.TOKEN_IDENTIFIER {
+		funcName = par.currToken
+		par.RegisterAdvancement(res)
+	}
+
+	if par.currToken.Type != lexer.TOKEN_LPAREN {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  fmt.Sprintf("Expected '(' after function declaration  found %s '%s' ", &par.currToken.Type, &par.currToken.Value),
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+		})
+	}
+	par.RegisterAdvancement(res)
+
+	var argTokens []lexer.Token
+	if par.currToken.Type == lexer.TOKEN_IDENTIFIER {
+		argTokens = append(argTokens, par.currToken)
+		par.RegisterAdvancement(res)
+
+		for par.currToken.Type == lexer.TOKEN_COMMA {
+			par.RegisterAdvancement(res)
+
+			if par.currToken.Type != lexer.TOKEN_IDENTIFIER {
+				return *res.Failure(&LangErr.LangError{
+					Name:     "InvalidSyntaxErorr",
+					Details:  fmt.Sprintf("Expected identifier after found %s '%s' ", &par.currToken.Type, &par.currToken.Value),
+					StartPos: &par.currToken.Pos,
+					EndPos:   &par.currToken.EndPos,
+				})
+			}
+
+			argTokens = append(argTokens, par.currToken)
+			par.RegisterAdvancement(res)
+		}
+		if par.currToken.Type != lexer.TOKEN_LPAREN {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				Details:  fmt.Sprintf("Expected ')' or ','  after function declaration found %s '%s' ", &par.currToken.Type, &par.currToken.Value),
+				StartPos: &par.currToken.Pos,
+				EndPos:   &par.currToken.EndPos,
+			})
+		}
+	} else {
+		if par.currToken.Type != lexer.TOKEN_LPAREN {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				Details:  fmt.Sprintf("Expected ')' or  identifier after function declaration found %s '%s' ", &par.currToken.Type, &par.currToken.Value),
+				StartPos: &par.currToken.Pos,
+				EndPos:   &par.currToken.EndPos,
+			})
+		}
+	}
+	par.RegisterAdvancement(res)
+
+	if par.currToken.Type != lexer.TOKEN_START {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  fmt.Sprintf("Expected '>>' found %s '%s' ", &par.currToken.Type, &par.currToken.Value),
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+		})
+	}
+	par.RegisterAdvancement(res)
+	var body Node
+
+	if par.currToken.Type != lexer.TOKEN_NEWLINE {
+		body = res.Register(par.Expression())
+		if res.Err != nil {
+			return res
+		}
+
+		return *res.Succses(&FuncDefNode{
+			ArgNameTokens:    argTokens,
+			VarNameToken:     funcName,
+			BodyNode:         body,
+			ShouldReturnNull: true,
+		})
+	}
+	par.RegisterAdvancement(res)
+
+	for par.currToken.Type == lexer.TOKEN_NEWLINE {
+		par.RegisterAdvancement(res)
+	}
+
+	body = res.Register(par.GetStatments())
+	if res.Err != nil {
+		return res
+	}
+
+	if par.currToken.Type != lexer.TOKEN_END {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  fmt.Sprintf("Expected '<<' found %s '%s' ", &par.currToken.Type, &par.currToken.Value),
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+		})
+	}
+	par.RegisterAdvancement(res)
+	return *res.Succses(&FuncDefNode{
+		ArgNameTokens:    argTokens,
+		VarNameToken:     funcName,
+		BodyNode:         body,
+		ShouldReturnNull: false,
+	})
+
+}
+
 func (par *Parser) ListCallExpression() ParserResult {
 	res := ParserResult{}
 	par.RegisterAdvancement(res)
@@ -652,7 +765,7 @@ func (par *Parser) WhileExpression() ParserResult {
 		ShouldReturnNull: false,
 	})
 }
-func (par *Parser) FuncExpression() ParserResult
+
 func (par *Parser) ListExpression() ParserResult {
 	res := ParserResult{}
 	var elements []Node
