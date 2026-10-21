@@ -505,6 +505,7 @@ func (par *Parser) IfExpression() ParserResult {
 }
 func (par *Parser) ElseExpression() ParserResult {
 	res := ParserResult{}
+	var cntrl ControlFlow
 
 	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "else") {
 		par.RegisterAdvancement(res)
@@ -517,8 +518,31 @@ func (par *Parser) ElseExpression() ParserResult {
 				EndPos:   &par.currToken.EndPos,
 			})
 		}
+		par.RegisterAdvancement(res)
+
+		if par.currToken.Type == lexer.TOKEN_NEWLINE {
+			par.RegisterAdvancement(res)
+			cntrl.ElseCase = res.Register(par.GetStatments())
+
+			if par.currToken.Type == lexer.TOKEN_END {
+				par.RegisterAdvancement(res)
+			} else {
+				return *res.Failure(&LangErr.LangError{
+					Name:     "InvalidSyntaxErorr",
+					Details:  fmt.Sprintf("Expected '<<' found %s '%s'", par.currToken.Type, par.currToken.Value),
+					StartPos: &par.currToken.Pos,
+					EndPos:   &par.currToken.EndPos,
+				})
+			}
+		}
+	} else {
+		cntrl.ElseCase = res.Register(par.statement())
+		if res.Err != nil {
+			return res
+		}
+
 	}
-	return res
+	return *res.Succses(&cntrl)
 }
 
 func (par *Parser) ElifElseExpression() ParserResult {
