@@ -503,7 +503,23 @@ func (par *Parser) IfExpression() ParserResult {
 		ElseCases: cntrlFlw.ElseCase,
 	})
 }
-func (par *Parser) ElseExpression() ParserResult
+func (par *Parser) ElseExpression() ParserResult {
+	res := ParserResult{}
+
+	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "else") {
+		par.RegisterAdvancement(res)
+
+		if par.currToken.Type != lexer.TOKEN_START {
+			return *res.Failure(&LangErr.LangError{
+				Name:     "InvalidSyntaxErorr",
+				Details:  fmt.Sprintf("Expected '>>' found %s '%s'", par.currToken.Type, par.currToken.Value),
+				StartPos: &par.currToken.Pos,
+				EndPos:   &par.currToken.EndPos,
+			})
+		}
+	}
+	return res
+}
 
 func (par *Parser) ElifElseExpression() ParserResult {
 	res := ParserResult{}
