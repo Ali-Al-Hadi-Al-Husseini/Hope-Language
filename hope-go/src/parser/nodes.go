@@ -90,7 +90,7 @@ type VarAccessNode struct {
 }
 
 type IfNode struct {
-	Cases     Node
+	Cases     []Node
 	ElseCases Node
 	BaseNode
 }
