@@ -504,9 +504,25 @@ func (par *Parser) IfExpression() ParserResult {
 	})
 }
 func (par *Parser) ElseExpression() ParserResult
-func (par *Parser) ElifExpression() ParserResult
 
-func (par *Parser) ElifElseExpression() ParserResult
+func (par *Parser) ElifElseExpression() ParserResult {
+	res := ParserResult{}
+	var cntrl Node
+
+	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "elif") {
+		cntrl = res.Register(par.IfElifMaker("elif"))
+		if res.Err != nil {
+			return res
+		}
+	} else {
+		cntrl = res.Register(par.ElseExpression())
+		if res.Err != nil {
+			return res
+		}
+	}
+	return *res.Succses(cntrl)
+
+}
 func (par *Parser) FuncExpression() ParserResult {
 	res := ParserResult{}
 	par.RegisterAdvancement(res)
