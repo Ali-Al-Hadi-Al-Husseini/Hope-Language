@@ -118,6 +118,12 @@ type ControlFlow struct {
 	ElseCase Node
 	BaseNode
 }
+type Case struct {
+	conditon         Node
+	stmts            Node
+	ShouldReturnNull bool
+	BaseNode
+}
 
 type WhileNode struct {
 	ConditionNode    Node
