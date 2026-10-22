@@ -41,7 +41,7 @@ type ListNode struct {
 }
 
 func (node *ListNode) String() string {
-	bodyNodes := make([]string, 0, len(node.Elements))
+	bodyNodes := make([]string, len(node.Elements))
 	for idx, elemn := range node.Elements {
 		bodyNodes[idx] = elemn.String()
 	}
@@ -65,7 +65,7 @@ type UnaryOperationNode struct {
 }
 
 func (node *UnaryOperationNode) String() string {
-	return fmt.Sprintf("(%v), %v ", node.Token, node.Node)
+	return fmt.Sprintf("(%v), %v ", node.OpToken, node.Node)
 }
 
 type BinOpertaionNode struct {
@@ -76,7 +76,8 @@ type BinOpertaionNode struct {
 }
 
 func (node *BinOpertaionNode) String() string {
-	return fmt.Sprintf("( %v %v %v )", node.LeftNode, node.Token, node.RightNode)
+	// left and right are flipped because an erro in python code where leftnode and right node are flipped in __init__
+	return fmt.Sprintf("( %v %v %v )", node.RightNode, node.Operation.String(), node.LeftNode)
 }
 
 type VarAssignNode struct {
