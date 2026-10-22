@@ -395,14 +395,15 @@ func (par *Parser) Most() ParserResult {
 						EndPos:   &endPos,
 					},
 				})
+			} else {
+
+				return *res.Failure(&LangErr.LangError{
+					Name:     "InvalidSyntaxErorr",
+					Details:  "Expected index (integer or identifier) after [ ",
+					StartPos: &par.currToken.Pos,
+					EndPos:   &par.currToken.EndPos,
+				})
 			}
-		default:
-			return *res.Failure(&LangErr.LangError{
-				Name:     "InvalidSyntaxErorr",
-				Details:  "Expected index (integer or identifier) after [ ",
-				StartPos: &par.currToken.Pos,
-				EndPos:   &par.currToken.EndPos,
-			})
 		}
 
 		return *res.Succses(&VarAccessNode{
@@ -509,7 +510,7 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 	}
 	par.RegisterAdvancement(res)
 	condition := res.Register(par.Expression())
-	if !par.currToken.Matches(lexer.TOKEN_KEYWORD, lexer.TOKEN_START) {
+	if par.currToken.Type != lexer.TOKEN_START {
 		return *res.Failure(&LangErr.LangError{
 			Name:     "InvalidSyntaxErorr",
 			Details:  fmt.Sprintf("Expected >>' found %s '%s'", par.currToken.Type, par.currToken.Value),
