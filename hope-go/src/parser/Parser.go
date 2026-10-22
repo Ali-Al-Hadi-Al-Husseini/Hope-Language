@@ -406,7 +406,9 @@ func (par *Parser) Most() ParserResult {
 		}
 
 		return *res.Succses(&VarAccessNode{
-			BaseNode: BaseNode{Token: &identifierTok},
+			BaseNode: BaseNode{
+				Name:  "VarAccessNode",
+				Token: &identifierTok},
 		})
 
 	default:
