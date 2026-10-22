@@ -78,7 +78,10 @@ func (par *Parser) GetStatments() ParserResult {
 		if !moreStatements {
 			break
 		}
-		statement = res.Register(par.statement())
+		statement, err := res.TryRegister(par.statement())
+		if err != nil {
+			statement = nil
+		}
 		if statement == nil {
 			par.reverse(res.reverseCount)
 			moreStatements = false
@@ -552,8 +555,9 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 			stmts:            expr,
 			ShouldReturnNull: false,
 		})
-		new_cases := res.Register(par.ElifElseExpression()).(*ControlFlow)
-		if res.Err != nil {
+
+		new_cases, ok := res.Register(par.ElifElseExpression()).(*ControlFlow)
+		if res.Err != nil || !ok {
 			return res
 		}
 		cntrl.Cases = append(cntrl.Cases, new_cases.Cases...)
@@ -604,17 +608,17 @@ func (par *Parser) ElseExpression() ParserResult {
 					EndPos:   &par.currToken.EndPos,
 				})
 			}
-		}
-	} else {
-		stmt := res.Register(par.statement())
-		cntrl.ElseCase = &Case{
-			stmts:            stmt,
-			ShouldReturnNull: false,
-		}
-		if res.Err != nil {
-			return res
-		}
+		} else {
+			stmt := res.Register(par.statement())
+			cntrl.ElseCase = &Case{
+				stmts:            stmt,
+				ShouldReturnNull: false,
+			}
+			if res.Err != nil {
+				return res
+			}
 
+		}
 	}
 	return *res.Succses(&cntrl)
 }
