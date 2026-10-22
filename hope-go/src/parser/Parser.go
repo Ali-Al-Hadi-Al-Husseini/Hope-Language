@@ -490,7 +490,70 @@ func (par *Parser) Call() ParserResult {
 	return *res.Succses(most)
 }
 
-func (par *Parser) IfElifMaker(keyword string) ParserResult
+func (par *Parser) IfElifMaker(keyword string) ParserResult {
+	res := ParserResult{}
+	var cntrl ControlFlow
+
+	if !par.currToken.Matches(lexer.TOKEN_KEYWORD, keyword) {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  fmt.Sprintf("Expected %s", keyword),
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+		})
+	}
+	par.RegisterAdvancement(res)
+	condition := res.Register(par.Expression())
+	if !par.currToken.Matches(lexer.TOKEN_KEYWORD, lexer.TOKEN_START) {
+		return *res.Failure(&LangErr.LangError{
+			Name:     "InvalidSyntaxErorr",
+			Details:  fmt.Sprintf("Expected >>' found %s '%s'", par.currToken.Type, par.currToken.Value),
+			StartPos: &par.currToken.Pos,
+			EndPos:   &par.currToken.EndPos,
+		})
+	}
+	par.RegisterAdvancement(res)
+
+	if par.currToken.Type == lexer.TOKEN_NEWLINE {
+		par.RegisterAdvancement(res)
+
+		statments := res.Register(par.GetStatments())
+		if res.Err != nil {
+			return res
+		}
+		cntrl.Cases = append(cntrl.Cases, &Case{
+			conditon:         condition,
+			stmts:            statments,
+			ShouldReturnNull: true,
+		})
+		if par.currToken.Type == lexer.TOKEN_END {
+			par.RegisterAdvancement(res)
+		} else {
+			new_cases := res.Register(par.ElifElseExpression()).(*ControlFlow)
+			if res.Err != nil {
+				return res
+			}
+			cntrl.Cases = append(cntrl.Cases, new_cases.Cases...)
+		}
+
+	} else {
+		expr := res.Register(par.statement())
+		if res.Err != nil {
+			return res
+		}
+		cntrl.Cases = append(cntrl.Cases, &Case{
+			conditon:         condition,
+			stmts:            expr,
+			ShouldReturnNull: false,
+		})
+		new_cases := res.Register(par.ElifElseExpression()).(*ControlFlow)
+		if res.Err != nil {
+			return res
+		}
+		cntrl.Cases = append(cntrl.Cases, new_cases.Cases...)
+	}
+	return *res.Succses(&cntrl)
+}
 func (par *Parser) IfExpression() ParserResult {
 	res := ParserResult{}
 
@@ -522,8 +585,9 @@ func (par *Parser) ElseExpression() ParserResult {
 
 		if par.currToken.Type == lexer.TOKEN_NEWLINE {
 			par.RegisterAdvancement(res)
-			cntrl.ElseCase = res.Register(par.GetStatments())
-
+			stmts := res.Register(par.GetStatments())
+			cntrl.ElseCase = &Case{ShouldReturnNull: true,
+				stmts: stmts}
 			if par.currToken.Type == lexer.TOKEN_END {
 				par.RegisterAdvancement(res)
 			} else {
@@ -536,7 +600,11 @@ func (par *Parser) ElseExpression() ParserResult {
 			}
 		}
 	} else {
-		cntrl.ElseCase = res.Register(par.statement())
+		stmt := res.Register(par.statement())
+		cntrl.ElseCase = &Case{
+			stmts:            stmt,
+			ShouldReturnNull: false,
+		}
 		if res.Err != nil {
 			return res
 		}
