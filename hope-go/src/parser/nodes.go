@@ -65,7 +65,7 @@ type UnaryOperationNode struct {
 }
 
 func (node *UnaryOperationNode) String() string {
-	return fmt.Sprintf("(%v), %v ", node.OpToken, node.Node)
+	return fmt.Sprintf("(%v, %v)", node.OpToken.String(), node.Node)
 }
 
 type BinOpertaionNode struct {
