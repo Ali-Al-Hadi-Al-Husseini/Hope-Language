@@ -215,7 +215,7 @@ func (par *Parser) BinOperation(operationFunc func() ParserResult, operations []
 			break
 		}
 		opToken := par.currToken
-		res.RegisterAdvancement()
+		par.RegisterAdvancement(res)
 		right := res.Register(operationFunc())
 
 		left = &BinOpertaionNode{
@@ -315,6 +315,7 @@ func (par *Parser) Most() ParserResult {
 	case lexer.TOKEN_FLOAT, lexer.TOKEN_INT:
 		par.RegisterAdvancement(res)
 		return *res.Succses(&NumberNode{BaseNode: BaseNode{
+			Name:  "NumberNode",
 			Token: &token},
 		})
 
