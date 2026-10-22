@@ -322,7 +322,9 @@ func (par *Parser) Most() ParserResult {
 	case lexer.TOKEN_STRING:
 		par.RegisterAdvancement(res)
 		return *res.Succses(&StringNode{
-			BaseNode: BaseNode{Token: &token}})
+			BaseNode: BaseNode{
+				Name:  "StringNode",
+				Token: &token}})
 
 	case lexer.TOKEN_LSQUARE:
 		expr := res.Register(par.ListExpression())
