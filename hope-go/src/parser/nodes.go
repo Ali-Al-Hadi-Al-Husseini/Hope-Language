@@ -134,6 +134,10 @@ type Case struct {
 	BaseNode
 }
 
+func (node *Case) String() string {
+	return fmt.Sprintf("(%v, %v, %v)", node.conditon, node.stmts, node.ShouldReturnNull)
+}
+
 type WhileNode struct {
 	ConditionNode    Node
 	BodyNode         Node
@@ -155,6 +159,11 @@ type CallNode struct {
 	ArgNodes   []Node
 	BaseNode
 }
+
+func (node *CallNode) String() string {
+	return fmt.Sprintf("%v__Call_Node", node.NodeToCall)
+}
+
 type ReturnNode struct {
 	node Node
 	BaseNode
