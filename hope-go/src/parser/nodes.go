@@ -65,7 +65,7 @@ type UnaryOperationNode struct {
 }
 
 func (node *UnaryOperationNode) String() string {
-	return fmt.Sprintf("(%v, %v)", node.OpToken.String(), node.Node)
+	return fmt.Sprintf("(%s, %v)", node.OpToken.String(), node.Node)
 }
 
 type BinOpertaionNode struct {
@@ -90,6 +90,10 @@ type VarAccessNode struct {
 	BaseNode
 }
 
+func (node *VarAccessNode) String() string {
+	return fmt.Sprintf("%v__var_access_node", node.Token)
+}
+
 type IfNode struct {
 	Cases     []Node
 	ElseCases Node
@@ -97,7 +101,11 @@ type IfNode struct {
 }
 
 func (node *IfNode) String() string {
-	return fmt.Sprintf("%v__%v__IfNode", node.Cases, node.ElseCases)
+	casesNode := make([]string, len(node.Cases))
+	for idx, elemn := range node.Cases {
+		casesNode[idx] = elemn.String()
+	}
+	return fmt.Sprintf("%v__%v__IfNode", casesNode, node.ElseCases)
 }
 
 type ForNode struct {
