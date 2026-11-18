@@ -512,6 +512,7 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 		})
 	}
 	par.RegisterAdvancement(res)
+	condToken := par.currToken
 	condition := res.Register(par.Expression())
 	if par.currToken.Type != lexer.TOKEN_START {
 		return *res.Failure(&LangErr.LangError{
@@ -534,6 +535,10 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 			conditon:         condition,
 			stmts:            statments,
 			ShouldReturnNull: true,
+			BaseNode: BaseNode{
+				Name:  condToken.Type,
+				Token: &condToken,
+			},
 		})
 		if par.currToken.Type == lexer.TOKEN_END {
 			par.RegisterAdvancement(res)
