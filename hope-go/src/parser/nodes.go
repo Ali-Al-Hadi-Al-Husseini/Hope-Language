@@ -44,6 +44,9 @@ func (node *ListNode) String() string {
 	bodyNodes := make([]string, len(node.Elements))
 	for idx, elemn := range node.Elements {
 		bodyNodes[idx] = elemn.String()
+		if len(node.Elements) > 1 && idx != len(node.Elements)-1 {
+			bodyNodes[idx] += ","
+		}
 	}
 	return fmt.Sprintf("ListNode__%v", bodyNodes)
 }
@@ -95,7 +98,8 @@ type VarAccessNode struct {
 }
 
 func (node *VarAccessNode) String() string {
-	return fmt.Sprintf("%v__var_access_node", node.Token)
+	s := node.Token.String()
+	return fmt.Sprintf("%v__var_access_node", s)
 }
 
 type IfNode struct {
@@ -109,7 +113,8 @@ func (node *IfNode) String() string {
 	for idx, elemn := range node.Cases {
 		casesNode[idx] = elemn.String()
 	}
-	return fmt.Sprintf("%v__%v__IfNode", casesNode, node.ElseCases)
+	elsecas := node.ElseCases.String()
+	return fmt.Sprintf("%v__%v__IfNode", casesNode, elsecas)
 }
 
 type ForNode struct {
@@ -139,7 +144,10 @@ type Case struct {
 }
 
 func (node *Case) String() string {
-	return fmt.Sprintf("(%v, %v, %v)", node.conditon, node.stmts, node.ShouldReturnNull)
+	if node.conditon != nil {
+		return fmt.Sprintf("(%v, %v, %v)", node.conditon, node.stmts, node.ShouldReturnNull)
+	}
+	return fmt.Sprintf("(%v, %v)", node.stmts, node.ShouldReturnNull)
 }
 
 type WhileNode struct {
@@ -165,7 +173,8 @@ type CallNode struct {
 }
 
 func (node *CallNode) String() string {
-	return fmt.Sprintf("%v__Call_Node", node.NodeToCall)
+	s := node.NodeToCall.String()
+	return fmt.Sprintf("%v__Call_Node", s)
 }
 
 type ReturnNode struct {
