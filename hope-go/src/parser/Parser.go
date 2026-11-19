@@ -36,7 +36,7 @@ func (par *Parser) reverse(amount int) lexer.Token {
 
 func (par *Parser) Parse() ParserResult {
 	result := par.GetStatments()
-	if result.Err != nil && par.currToken.Type != lexer.TOKEN_EOF {
+	if result.Err == nil && par.currToken.Type != lexer.TOKEN_EOF {
 		return *result.Failure(&LangErr.LangError{
 			Name:     "InvalidSyntaxErorr",
 			Details:  "Expected  '+', '-', '*' , '/'  or any other operation",
@@ -488,6 +488,7 @@ func (par *Parser) Call() ParserResult {
 					EndPos:   &par.currToken.Pos,
 				})
 			}
+			par.RegisterAdvancement(res)
 			return *res.Succses(&CallNode{
 				NodeToCall: most,
 				ArgNodes:   arguments,
@@ -548,6 +549,9 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 				return res
 			}
 			cntrl.Cases = append(cntrl.Cases, new_cases.Cases...)
+			if cntrl.ElseCase == nil {
+				cntrl.ElseCase = new_cases.ElseCase
+			}
 		}
 
 	} else {
