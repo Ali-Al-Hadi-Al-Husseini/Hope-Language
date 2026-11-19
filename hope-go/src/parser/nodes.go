@@ -24,7 +24,7 @@ type BaseNode struct {
 }
 
 func (node *BaseNode) String() string {
-	return fmt.Sprintf("%v__%v", node.Token, node.Name)
+	return fmt.Sprintf("%v__%v", node.Token.String(), node.Name)
 }
 
 type StringNode struct {
@@ -84,6 +84,10 @@ type VarAssignNode struct {
 	NameToken lexer.Token
 	ValueNode Node
 	BaseNode
+}
+
+func (node *VarAssignNode) String() string {
+	return fmt.Sprintf("%v__var_assign_node", node.NameToken.String())
 }
 
 type VarAccessNode struct {
