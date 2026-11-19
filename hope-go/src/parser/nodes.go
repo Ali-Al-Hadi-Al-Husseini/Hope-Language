@@ -98,8 +98,7 @@ type VarAccessNode struct {
 }
 
 func (node *VarAccessNode) String() string {
-	s := node.Token.String()
-	return fmt.Sprintf("%v__var_access_node", s)
+	return fmt.Sprintf("%v__var_access_node", node.Token)
 }
 
 type IfNode struct {
@@ -113,8 +112,7 @@ func (node *IfNode) String() string {
 	for idx, elemn := range node.Cases {
 		casesNode[idx] = elemn.String()
 	}
-	elsecas := node.ElseCases.String()
-	return fmt.Sprintf("%v__%v__IfNode", casesNode, elsecas)
+	return fmt.Sprintf("%v__%v__IfNode", casesNode, node.ElseCases)
 }
 
 type ForNode struct {
@@ -173,8 +171,7 @@ type CallNode struct {
 }
 
 func (node *CallNode) String() string {
-	s := node.NodeToCall.String()
-	return fmt.Sprintf("%v__Call_Node", s)
+	return fmt.Sprintf("%v__Call_Node", node.NodeToCall)
 }
 
 type ReturnNode struct {
