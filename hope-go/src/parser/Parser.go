@@ -148,7 +148,7 @@ func (par *Parser) Expression() ParserResult {
 		par.RegisterAdvancement(res)
 	}
 
-	if par.currToken.Matches(lexer.TOKEN_IDENTIFIER, "let") {
+	if par.currToken.Matches(lexer.TOKEN_KEYWORD, "let") {
 		par.RegisterAdvancement(res)
 
 		if par.currToken.Type != lexer.TOKEN_IDENTIFIER {
