@@ -690,7 +690,7 @@ func (par *Parser) FuncExpression() ParserResult {
 			argTokens = append(argTokens, par.currToken)
 			par.RegisterAdvancement(res)
 		}
-		if par.currToken.Type != lexer.TOKEN_LPAREN {
+		if par.currToken.Type != lexer.TOKEN_RPARENT {
 			return *res.Failure(&LangErr.LangError{
 				Name:     "InvalidSyntaxErorr",
 				Details:  fmt.Sprintf("Expected ')' or ','  after function declaration found %s '%s' ", par.currToken.Type, par.currToken.Value),
@@ -699,7 +699,7 @@ func (par *Parser) FuncExpression() ParserResult {
 			})
 		}
 	} else {
-		if par.currToken.Type != lexer.TOKEN_LPAREN {
+		if par.currToken.Type != lexer.TOKEN_RPARENT {
 			return *res.Failure(&LangErr.LangError{
 				Name:     "InvalidSyntaxErorr",
 				Details:  fmt.Sprintf("Expected ')' or  identifier after function declaration found %s '%s' ", par.currToken.Type, par.currToken.Value),
