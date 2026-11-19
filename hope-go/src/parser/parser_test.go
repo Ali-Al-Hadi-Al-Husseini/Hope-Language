@@ -50,7 +50,7 @@ func TestParser(t *testing.T) {
 		{"let x = 17; print(x*2 + 7 / 3 - 8)", "ListNode__[IDENTIFIER:x__var_assign_node', 'IDENTIFIER:print__var_access_node__Call_Node]"},
 	}
 	fmt.Println("started Testing")
-
+	// runner(18, testCases[18], t)
 	for i, Case := range testCases {
 		fmt.Println(i)
 
@@ -65,11 +65,18 @@ func runner(i int, Case testCase, t *testing.T) {
 	// defer wg.Done()
 	lex := lexer.CreateLexer("test.hope", Case.expresion)
 	tokens, err := lex.Tokenize()
+	if err != nil {
+		t.Errorf("lexer returned an error: %v", err)
+	}
 
 	// fmt.Printf("finsh plexing in %d\n", i)
 
 	par := Parser{Tokens: tokens, idx: 0, currToken: tokens[0]}
 	ast := par.Parse()
+	if ast.Err != nil {
+		t.Errorf("Parser returned an error: %v", ast.Err)
+		return
+	}
 
 	got := ast.node.String()
 
