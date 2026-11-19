@@ -42,5 +42,5 @@ func (res *ParserResult) TryRegister(newRes ParserResult) (Node, error) {
 		res.reverseCount = res.advanceCount
 		return newRes.node, fmt.Errorf("error")
 	}
-	return res.Register(*res), nil
+	return res.Register(newRes), nil
 }
