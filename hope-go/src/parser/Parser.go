@@ -131,12 +131,13 @@ func (par *Parser) statement() ParserResult {
 
 	expr := res.Register(par.Expression())
 	if res.Err != nil {
-		return *res.Failure(&LangErr.LangError{
-			Name:     "InvalidSyntaxErorr",
-			Details:  "Expected 'let', int, float, identifier, keyword,  '+', '-' or '(' ",
-			StartPos: &par.currToken.Pos,
-			EndPos:   &par.currToken.Pos,
-		})
+		return *res.Failure(res.Err)
+		// &LangErr.LangError{
+		// 	Name:     "InvalidSyntaxErorr",
+		// 	Details:  "Expected 'let', int, float, identifier, keyword,  '+', '-' or '(' ",
+		// 	StartPos: &par.currToken.Pos,
+		// 	EndPos:   &par.currToken.Pos,
+		// }
 	}
 	return *res.Succses(expr)
 }
@@ -183,12 +184,13 @@ func (par *Parser) Expression() ParserResult {
 	}
 	node := res.Register(par.BinOperation(par.ComparisonExpression, []string{"and", "or"}))
 	if res.Err != nil {
-		return *res.Failure(&LangErr.LangError{
-			Name:     "InvalidSyntaxErorr",
-			Details:  "Expected 'let', int, float, identifier, '+', '-' or '(' ",
-			StartPos: &par.currToken.Pos,
-			EndPos:   &par.currToken.EndPos,
-		})
+		return *res.Failure(res.Err)
+		// &LangErr.LangError{
+		// 	Name:     "InvalidSyntaxErorr",
+		// 	Details:  "Expected 'let', int, float, identifier, '+', '-' or '(' ",
+		// 	StartPos: &par.currToken.Pos,
+		// 	EndPos:   &par.currToken.EndPos,
+		// }
 	}
 	return *res.Succses(node)
 }
@@ -249,12 +251,13 @@ func (par *Parser) ComparisonExpression() ParserResult {
 	}
 	node := res.Register(par.BinOperation(par.ArithmeticExpression, []string{lexer.TOKEN_EE, lexer.TOKEN_NE, lexer.TOKEN_LT, lexer.TOKEN_GT, lexer.TOKEN_GTE, lexer.TOKEN_LTE}))
 	if res.Err != nil {
-		return *res.Failure(&LangErr.LangError{
-			Name:     "InvalidSyntaxErorr",
-			Details:  "Expected int, float, identifier, keyword, function call, '+', '-' , '(' , '[' or 'not' ",
-			StartPos: &par.currToken.Pos,
-			EndPos:   &par.currToken.EndPos,
-		})
+		return *res.Failure(res.Err)
+		// &LangErr.LangError{
+		// 	Name:     "InvalidSyntaxErorr",
+		// 	Details:  "Expected int, float, identifier, keyword, function call, '+', '-' , '(' , '[' or 'not' ",
+		// 	StartPos: &par.currToken.Pos,
+		// 	EndPos:   &par.currToken.EndPos,
+		// }
 	}
 	return *res.Succses(node)
 }
@@ -699,7 +702,7 @@ func (par *Parser) FuncExpression() ParserResult {
 			})
 		}
 	} else {
-		if par.currToken.Type != lexer.TOKEN_RPARENT {
+		if par.currToken.Type != lexer.TOKEN_LPAREN {
 			return *res.Failure(&LangErr.LangError{
 				Name:     "InvalidSyntaxErorr",
 				Details:  fmt.Sprintf("Expected ')' or  identifier after function declaration found %s '%s' ", par.currToken.Type, par.currToken.Value),
