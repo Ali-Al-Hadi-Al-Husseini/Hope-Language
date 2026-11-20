@@ -1,7 +1,5 @@
 package parser
 
-import "fmt"
-
 type ParserResult struct {
 	Err              error
 	node             Node
@@ -40,7 +38,7 @@ func (res *ParserResult) Failure(err error) *ParserResult {
 func (res *ParserResult) TryRegister(newRes ParserResult) (Node, error) {
 	if newRes.Err != nil {
 		res.reverseCount = res.advanceCount
-		return newRes.node, fmt.Errorf("error")
+		return newRes.node, newRes.Err
 	}
 	return res.Register(newRes), nil
 }
