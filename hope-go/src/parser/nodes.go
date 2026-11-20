@@ -126,7 +126,7 @@ type ForNode struct {
 }
 
 func (node *ForNode) String() string {
-	return ""
+	return fmt.Sprintf("For_Node__%v", node.BodyNode)
 }
 
 type ControlFlow struct {
