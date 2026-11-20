@@ -898,7 +898,7 @@ func (par *Parser) WhileExpression() ParserResult {
 		if res.Err != nil {
 			return res
 		}
-		if par.currToken.Type != lexer.TOKEN_START {
+		if par.currToken.Type != lexer.TOKEN_END {
 			return *res.Failure(&LangErr.LangError{
 				Name:     "InvalidSyntaxErorr",
 				Details:  fmt.Sprintf("Expected '<<'  found  %s '%s' ", par.currToken.Type, par.currToken.Value),
