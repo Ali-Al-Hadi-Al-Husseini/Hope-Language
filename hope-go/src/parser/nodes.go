@@ -155,6 +155,10 @@ type WhileNode struct {
 	BaseNode
 }
 
+func (node *WhileNode) String() string {
+	return fmt.Sprintf("While_Node__%v", node.BodyNode)
+}
+
 type FuncDefNode struct {
 	ArgNameTokens    []lexer.Token
 	BodyNode         Node
@@ -162,6 +166,10 @@ type FuncDefNode struct {
 	ShouldReturnNull bool
 
 	BaseNode
+}
+
+func (node *FuncDefNode) String() string {
+	return fmt.Sprintf("functionDefNode__%v__%v", node.VarNameToken.String(), node.BodyNode.String())
 }
 
 type CallNode struct {
@@ -179,9 +187,22 @@ type ReturnNode struct {
 	BaseNode
 }
 
+func (node *ReturnNode) String() string {
+	return "__ReturnNode__"
+}
+
 type BreakNode struct {
 	BaseNode
 }
+
+func (node *BreakNode) String() string {
+	return "__BreakNode__"
+}
+
 type ContinueNode struct {
 	BaseNode
+}
+
+func (node *ContinueNode) String() string {
+	return "__ContinueNode__"
 }
