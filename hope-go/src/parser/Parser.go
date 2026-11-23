@@ -299,7 +299,7 @@ func (par *Parser) Power() ParserResult {
 	if par.currToken.Type == lexer.TOKEN_POW {
 
 		opToken := par.currToken
-		res.RegisterAdvancement()
+		par.RegisterAdvancement(res)
 		right := res.Register(par.Factor())
 
 		left = &BinOpertaionNode{
