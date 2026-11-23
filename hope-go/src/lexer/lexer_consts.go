@@ -8,7 +8,7 @@ const (
 	TOKEN_MINUS      = "MINUS"
 	TOKEN_MUL        = "MUL"
 	TOKEN_DIV        = "DIV"
-	TOKEN_POW        = "POW " // power token
+	TOKEN_POW        = "POW" // power token
 	TOKEN_MODULE     = "MOD"
 	TOKEN_LPAREN     = "LPAREN"
 	TOKEN_RPARENT    = "RPAREN"
