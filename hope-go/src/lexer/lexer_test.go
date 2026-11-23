@@ -12,6 +12,8 @@ func TestLexer(t *testing.T) {
 		want      []string
 	}{
 		{"", []string{"EOF"}},
+		{"# comment test", []string{"EOF"}},
+		{"1.731", []string{"FLOAT:1.731", "EOF"}},
 		{"123 ", []string{"INTEGER:123", "EOF"}},
 		{"123 \n", []string{"INTEGER:123", "NEWLINE", "EOF"}},
 		{"12 + 3 ", []string{"INTEGER:12", "PLUS", "INTEGER:3", "EOF"}},
@@ -55,7 +57,6 @@ func TestLexer(t *testing.T) {
 			lex := CreateLexer("test.hope", tt.expresion)
 
 			tokens, err := lex.Tokenize()
-
 			got := make([]string, len(tokens))
 			for i, token := range tokens {
 				if token.Value != "" {
