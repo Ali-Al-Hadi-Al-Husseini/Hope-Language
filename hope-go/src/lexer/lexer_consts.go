@@ -12,6 +12,7 @@ const (
 	TOKEN_MODULE     = "MOD"
 	TOKEN_LPAREN     = "LPAREN"
 	TOKEN_RPARENT    = "RPAREN"
+	TOKEN_NOT        = "NOT"
 	TOKEN_EQ         = "EQ"         // equals token
 	TOKEN_EE         = "EE"         // equals equals "==" token used in comparison operatores
 	TOKEN_GT         = "GT"         // greater then ">" operator token
