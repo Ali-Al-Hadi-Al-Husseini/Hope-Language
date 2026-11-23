@@ -28,6 +28,7 @@ func TestLexer(t *testing.T) {
 		{"<", []string{"LT", "EOF"}},
 		{"<=", []string{"LTE", "EOF"}},
 		{"!true", []string{"NOT", "IDENTIFIER:true", "EOF"}},
+		{"1 ^ 2", []string{"INTEGER:1", "POW", "INTEGER:2", "EOF"}},
 		{"1 != 2", []string{"INTEGER:1", "NE", "INTEGER:2", "EOF"}},
 		{"3 == 3", []string{"INTEGER:3", "EE", "INTEGER:3", "EOF"}},
 		{"123 \n", []string{"INTEGER:123", "NEWLINE", "EOF"}},
