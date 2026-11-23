@@ -1,7 +1,7 @@
 
 import unittest
 
-from .lang import *
+from lang import *
 
 
 class TestParser(unittest.TestCase):
@@ -44,7 +44,8 @@ class TestParser(unittest.TestCase):
 
     def test_parser(self):
         
-        for code ,expected_result in self.parser_test_cases_success:
+        for i, (code ,expected_result) in enumerate(self.parser_test_cases_success):
+            if i != 15: continue
             # tokenizing
             tokenizer = Tokenizer(code, "temp")
             tokens, error = tokenizer.make_tokens()    

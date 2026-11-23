@@ -249,7 +249,7 @@ func (lex *lexer) makeNotEqual() Token {
 		return Token{Type: TOKEN_NE, Pos: startPos, EndPos: *lex.pos}
 	}
 
-	return Token{Type: TOKEN_EQ, Pos: startPos, EndPos: *lex.pos}
+	return Token{Type: TOKEN_NOT, Pos: startPos, EndPos: *lex.pos}
 }
 func (lex *lexer) makeIdentifier() Token {
 	identIdx := lex.pos.Idx
