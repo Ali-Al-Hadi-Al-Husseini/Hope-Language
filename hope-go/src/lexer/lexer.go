@@ -127,7 +127,7 @@ func (lex *lexer) makeNumber() (Token, error) {
 			if dotCount > 0 {
 				return Token{}, &LangErr.LangError{
 					Name:     "IllegalChar",
-					Details:  fmt.Sprintf("expected legal char found: %c", lex.currChar),
+					Details:  fmt.Sprintf("expected more numbers found: %c", lex.currChar),
 					StartPos: lex.pos,
 				}
 			}
