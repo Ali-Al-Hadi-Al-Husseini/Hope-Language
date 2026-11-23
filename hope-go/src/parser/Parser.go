@@ -507,14 +507,14 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 	res := ParserResult{}
 	var cntrl ControlFlow
 
-	if !par.currToken.Matches(lexer.TOKEN_KEYWORD, keyword) {
-		return *res.Failure(&LangErr.LangError{
-			Name:     "InvalidSyntaxErorr",
-			Details:  fmt.Sprintf("Expected %s", keyword),
-			StartPos: &par.currToken.Pos,
-			EndPos:   &par.currToken.EndPos,
-		})
-	}
+	// if !par.currToken.Matches(lexer.TOKEN_KEYWORD, keyword) {
+	// 	return *res.Failure(&LangErr.LangError{
+	// 		Name:     "InvalidSyntaxErorr",
+	// 		Details:  fmt.Sprintf("Expected %s", keyword),
+	// 		StartPos: &par.currToken.Pos,
+	// 		EndPos:   &par.currToken.EndPos,
+	// 	})
+	// }
 	par.RegisterAdvancement(res)
 	condToken := par.currToken
 	condition := res.Register(par.Expression())
