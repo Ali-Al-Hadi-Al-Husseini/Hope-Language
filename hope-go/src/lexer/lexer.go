@@ -44,10 +44,7 @@ func (lex *lexer) Tokenize() ([]Token, error) {
 			tokens = append(tokens, tok)
 
 		case '-':
-			tok, err := lex.makeArrowOrMinus(&tokens)
-			if err != nil {
-				return []Token{}, err
-			}
+			tok, _ := lex.makeArrowOrMinus(&tokens)
 			tokens = append(tokens, tok)
 
 		case '+', '/', '*', '%', '^':
