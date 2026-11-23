@@ -1,16 +1,21 @@
 package lexer
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
+
+	LangErr "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/LangErr"
 )
 
+type testcase struct {
+	expresion string
+	want      []string
+}
+
 func TestLexer(t *testing.T) {
-	tests := []struct {
-		expresion string
-		want      []string
-	}{
+	tests := []testcase{
 		{"", []string{"EOF"}},
 		{"# comment test", []string{"EOF"}},
 		{"1.731", []string{"FLOAT:1.731", "EOF"}},
@@ -22,7 +27,6 @@ func TestLexer(t *testing.T) {
 		{">", []string{"GT", "EOF"}},
 		{"<", []string{"LT", "EOF"}},
 		{"<=", []string{"LTE", "EOF"}},
-
 		{"!true", []string{"NOT", "IDENTIFIER:true", "EOF"}},
 		{"1 != 2", []string{"INTEGER:1", "NE", "INTEGER:2", "EOF"}},
 		{"3 == 3", []string{"INTEGER:3", "EE", "INTEGER:3", "EOF"}},
@@ -61,6 +65,10 @@ func TestLexer(t *testing.T) {
 		{"let x = 0; print(x+1) ", []string{"KEYWORD:let", "IDENTIFIER:x", "EQ", "INTEGER:0", "NEWLINE", "IDENTIFIER:print", "LPAREN", "IDENTIFIER:x", "PLUS", "INTEGER:1", "RPAREN", "EOF"}},
 		{"let x = 'test_case'; print(x + ' hello') ", []string{"KEYWORD:let", "IDENTIFIER:x", "EQ", "STRING:test_case", "NEWLINE", "IDENTIFIER:print", "LPAREN", "IDENTIFIER:x", "PLUS", "STRING: hello", "RPAREN", "EOF"}},
 		{"let x = 17; print(x*2 + 7 / 3 - 8) ", []string{"KEYWORD:let", "IDENTIFIER:x", "EQ", "INTEGER:17", "NEWLINE", "IDENTIFIER:print", "LPAREN", "IDENTIFIER:x", "MUL", "INTEGER:2", "PLUS", "INTEGER:7", "DIV", "INTEGER:3", "MINUS", "INTEGER:8", "RPAREN", "EOF"}},
+
+		// test case that produces erros
+		{"'hola", []string{"expected legal char found: \x00"}},
+		{"123.12.1", []string{"expected more numbers found: ."}},
 	}
 
 	for i, tt := range tests {
@@ -68,6 +76,17 @@ func TestLexer(t *testing.T) {
 			lex := CreateLexer("test.hope", tt.expresion)
 
 			tokens, err := lex.Tokenize()
+
+			if err != nil {
+				var targetErr *LangErr.LangError
+				if errors.As(err, &targetErr) {
+					if !reflect.DeepEqual(targetErr.Details, tt.want[0]) {
+						t.Errorf("lexer(%q) = %v; want %v", tt.expresion, err, tt.want)
+						t.Errorf("Failed TestCase : %d\n", i)
+					}
+				}
+				return
+			}
 			got := make([]string, len(tokens))
 			for i, token := range tokens {
 				if token.Value != "" {
@@ -78,12 +97,10 @@ func TestLexer(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				if err == nil {
-					t.Errorf("lexer(%q) = %v; want %v", tt.expresion, got, tt.want)
-					t.Errorf("Failed TestCase : %d\n", i)
-				} else {
-					t.Errorf("lexer returned an error: %v", err)
-				}
+
+				t.Errorf("lexer(%q) = %v; want %v", tt.expresion, got, tt.want)
+				t.Errorf("Failed TestCase : %d\n", i)
+
 			} else {
 				fmt.Printf("Passed TestCase : %d\n", i)
 			}
