@@ -52,10 +52,8 @@ func (lex *lexer) Tokenize() ([]Token, error) {
 
 		case '+', '/', '*', '%', '^':
 			opType, _ := symbols[lex.currChar]
-			tok, err := lex.makeOperationAndEqual(&tokens, opType, true)
-			if err != nil {
-				return []Token{}, err
-			}
+			tok, _ := lex.makeOperationAndEqual(&tokens, opType, true)
+
 			tokens = append(tokens, tok)
 
 		case '!':
