@@ -1,6 +1,10 @@
 package lexer
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/LangErr"
+)
 
 type lexer struct {
 	currChar byte
@@ -41,19 +45,23 @@ func (lex *lexer) Tokenize() ([]Token, error) {
 		case '-':
 			tok, err := lex.makeArrowOrMinus(&tokens)
 			if err != nil {
-				return []Token{}, fmt.Errorf("%v", err)
+				return []Token{}, err
 			}
 			tokens = append(tokens, tok)
 
 		case '+', '/', '*', '%', '^':
 			opType, ok := symbols[lex.currChar]
 			if !ok {
-				return []Token{}, fmt.Errorf("expected symbol found: %c", lex.currChar)
+				return []Token{}, &LangErr.LangError{
+					Name:     "SymbolNotFound",
+					Details:  fmt.Sprintf("expected symbol found: %c", lex.currChar)
+					StartPos: &lex.pos,
+				}
 
 			}
 			tok, err := lex.makeOperationAndEqual(&tokens, opType, true)
 			if err != nil {
-				return []Token{}, fmt.Errorf("IllegalChar")
+				return []Token{}, err
 			}
 			tokens = append(tokens, tok)
 
@@ -90,7 +98,12 @@ func (lex *lexer) Tokenize() ([]Token, error) {
 				tokens = append(tokens, lex.makeIdentifier())
 
 			default:
-				return []Token{}, fmt.Errorf("IllegalChar")
+				
+				return []Token{}, &LangErr.LangError{
+					Name:     "IllegalChar",
+					Details:  fmt.Sprintf("expected legal char found: %c", lex.currChar)
+					StartPos: &lex.pos,
+				}
 			}
 
 		}
@@ -119,7 +132,11 @@ func (lex *lexer) makeNumber() (Token, error) {
 	for idx < len(lex.pos.File.Text) && (isdigit(lex.currChar) || lex.currChar == '.') {
 		if lex.currChar == '.' {
 			if dotCount > 0 {
-				return Token{}, fmt.Errorf("IllegalChar")
+				return Token{}, &LangErr.LangError{
+					Name:     "IllegalChar",
+					Details:  fmt.Sprintf("expected legal char found: %c", lex.currChar)
+					StartPos: &lex.pos,
+				}
 			}
 			dotCount += 1
 		}
@@ -172,7 +189,11 @@ func (lex *lexer) makeStr() (Token, error) {
 	}
 
 	if lex.currChar != currQuotes {
-		return Token{}, fmt.Errorf("illgal char")
+		return Token{}, &LangErr.LangError{
+					Name:     "IllegalChar",
+					Details:  fmt.Sprintf("expected legal char found: %c", lex.currChar)
+					StartPos: &lex.pos,
+				}
 	}
 	lex.advance(true)
 	val := lex.File.Text[strStart : lex.pos.Idx-1]
