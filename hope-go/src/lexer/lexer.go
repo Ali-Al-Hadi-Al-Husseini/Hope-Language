@@ -51,15 +51,7 @@ func (lex *lexer) Tokenize() ([]Token, error) {
 			tokens = append(tokens, tok)
 
 		case '+', '/', '*', '%', '^':
-			opType, ok := symbols[lex.currChar]
-			if !ok {
-				return []Token{}, &LangErr.LangError{
-					Name:     "SymbolNotFound",
-					Details:  fmt.Sprintf("expected symbol found: %c", lex.currChar),
-					StartPos: lex.pos,
-				}
-
-			}
+			opType, _ := symbols[lex.currChar]
 			tok, err := lex.makeOperationAndEqual(&tokens, opType, true)
 			if err != nil {
 				return []Token{}, err
