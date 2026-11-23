@@ -269,7 +269,7 @@ func (par *Parser) Factor() ParserResult {
 	res := ParserResult{}
 	token := par.currToken
 
-	if par.currToken.Type == lexer.TOKEN_PLUS || par.currToken.Type == lexer.TOKEN_MINUS {
+	if par.currToken.Type == lexer.TOKEN_PLUS || par.currToken.Type == lexer.TOKEN_MINUS || par.currToken.Type == lexer.TOKEN_NOT {
 		par.RegisterAdvancement(res)
 		factor := res.Register(par.Factor())
 		if res.Err != nil {
