@@ -154,17 +154,9 @@ func (lex *lexer) makeNewLine() Token {
 	tok := Token{Type: TOKEN_NEWLINE, Pos: *lex.pos}
 	lex.advance()
 
-	if lex.currChar == 0 {
-		return tok
-	}
-
-	for lex.currChar == '\n' || lex.currChar == ';' {
+	for (lex.currChar == '\n' || lex.currChar == ';') && lex.currChar != 0 {
 		lex.advance()
-		if lex.currChar == 0 {
-			return tok
-		}
 	}
-
 	return tok
 }
 func (lex *lexer) makeStr() (Token, error) {
