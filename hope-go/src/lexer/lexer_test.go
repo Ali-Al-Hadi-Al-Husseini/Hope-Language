@@ -69,6 +69,9 @@ func TestLexer(t *testing.T) {
 		// test case that produces erros
 		{"'hola", []string{"expected legal char found: \x00"}},
 		{"123.12.1", []string{"expected more numbers found: ."}},
+		{"@", []string{"expected legal char found: @"}},
+		{"$", []string{"expected legal char found: $"}},
+		{"~", []string{"expected legal char found: ~"}},
 	}
 
 	for i, tt := range tests {
