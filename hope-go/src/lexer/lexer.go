@@ -24,7 +24,7 @@ func (lex *lexer) Tokenize() ([]Token, error) {
 			lex.advance(true)
 		case '#':
 			lex.advance(true)
-			for lex.currChar != '\n' {
+			for lex.currChar != '\n' && len(lex.File.Text) > lex.pos.Idx {
 				lex.advance(true)
 			}
 			lex.advance(true)
@@ -116,7 +116,7 @@ func (lex *lexer) makeNumber() (Token, error) {
 	start_pos := *lex.pos
 	idx := start_pos.Idx
 
-	for idx < len(lex.pos.File.Text) && isdigit(lex.currChar) {
+	for idx < len(lex.pos.File.Text) && (isdigit(lex.currChar) || lex.currChar == '.') {
 		if lex.currChar == '.' {
 			if dotCount > 0 {
 				return Token{}, fmt.Errorf("IllegalChar")
