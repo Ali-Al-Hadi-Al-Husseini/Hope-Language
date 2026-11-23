@@ -3,10 +3,10 @@ package LangErr
 import (
 	"strings"
 
-	lexer "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
+	position "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/Position"
 )
 
-func StringWithArrows(text string, startPos lexer.Position, endPos lexer.Position) string {
+func StringWithArrows(text string, startPos position.Position, endPos position.Position) string {
 	var result strings.Builder
 
 	// Calculate indices

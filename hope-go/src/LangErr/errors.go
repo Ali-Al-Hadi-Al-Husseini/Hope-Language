@@ -3,14 +3,14 @@ package LangErr
 import (
 	"fmt"
 
-	lexer "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
+	position "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/Position"
 )
 
 type LangError struct {
 	Name     string
 	Details  string
-	StartPos *lexer.Position
-	EndPos   *lexer.Position
+	StartPos *position.Position
+	EndPos   *position.Position
 }
 
 func (err *LangError) Error() string {

@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 
+	position "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/Position"
 	lexer "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
 )
 
@@ -19,8 +20,8 @@ type Stmt interface {
 type BaseNode struct {
 	Name     string
 	Token    *lexer.Token
-	StartPos *lexer.Position
-	EndPos   *lexer.Position
+	StartPos *position.Position
+	EndPos   *position.Position
 }
 
 func (node *BaseNode) String() string {
