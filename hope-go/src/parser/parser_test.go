@@ -65,9 +65,8 @@ func TestParser(t *testing.T) {
 		{"for i= 1 -> 5 >> \n print(i) ", "Expected '<<'  found EOF ''"},
 		{"x[0}", "Expected ']' after index 0"},
 		{"x['test']", "Expected index (integer or identifier) after [ "},
-		{"if true ", "Expected >>' found EOF ''"},
-		{"if true {", "Expected >>' found LCURLY ''"},
-		// {"if true >", "Expected >>' found LCURLY'{'"},
+		{"if true ", "Expected '>>' found EOF ''"},
+		{"if true {", "Expected '>>' found LCURLY ''"},
 	}
 	fmt.Println("started Testing")
 	for i, Case := range testCases {
