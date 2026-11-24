@@ -1,10 +1,12 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 
+	LangErr "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/LangErr"
 	"github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/lexer"
 )
 
@@ -15,8 +17,23 @@ type testCase struct {
 
 func TestParser(t *testing.T) {
 	testCases := []testCase{
-
-		//
+		// {"", "EOF"},
+		// {"# comment test", ""},
+		{"1.731", "ListNode__[FLOAT:1.731__NumberNode]"},
+		{"123 ", ""},
+		{"!=", ""},
+		{"==", ""},
+		{"!", ""},
+		{">=", ""},
+		{">", ""},
+		{"<", ""},
+		{"<=", ""},
+		{"!true", ""},
+		{"[]", "ListNode__[ListNode__[]]"},
+		{"[1,2,3,4]", "ListNode__[ListNode__[INTEGER:1__NumberNode, INTEGER:2__NumberNode, INTEGER:3__NumberNode, INTEGER:4__NumberNode]]"},
+		{"let x= [1,2,3,4]; x[0]", "ListNode__[IDENTIFIER:x__var_assign_node, __x__0__ListacssesNode]"},
+		{"not true", "ListNode__[(KEYWORD:not, IDENTIFIER:true__var_access_node)]"},
+		{"(2 ^ 1)", "ListNode__[( INTEGER:1__NumberNode POW INTEGER:2__NumberNode )]"},
 		{"(2+1)", "ListNode__[( INTEGER:1__NumberNode PLUS INTEGER:2__NumberNode )]"},
 		{"(-2+1)", "ListNode__[( INTEGER:1__NumberNode PLUS (MINUS, INTEGER:2__NumberNode) )]"},
 		{"(7 * 2)", "ListNode__[( INTEGER:2__NumberNode MUL INTEGER:7__NumberNode )]"},
@@ -42,7 +59,6 @@ func TestParser(t *testing.T) {
 		{"func add (a,b) >> \n\n            if a > b >>\n                return a+b + 1 \n         else >> \n                return a + b -1\n            <<\n        <<\n        let z = add(1,2)   \n        ", "ListNode__[functionDefNode__IDENTIFIER:add__ListNode__[[(( IDENTIFIER:b__var_access_node GT IDENTIFIER:a__var_access_node ), ListNode__[__ReturnNode__], true)]__(ListNode__[__ReturnNode__], true)__IfNode], IDENTIFIER:z__var_assign_node]"},
 		{"for i= 1 -> 5 >> print(i)", "ListNode__[For_Node__IDENTIFIER:print__var_access_node__Call_Node]"},
 		{"for i= 1 -> 5 >> let a = i ", "ListNode__[For_Node__IDENTIFIER:a__var_assign_node]"},
-		{"for i= 1 -- 5 >> print(i) ", "<nil>"},
 		{"let i = 0\n        while i < 5 >> i +=  1\n        print(i)\n        ", "ListNode__[IDENTIFIER:i__var_assign_node, While_Node__IDENTIFIER:i__var_assign_node, IDENTIFIER:print__var_access_node__Call_Node]"},
 		{"let i = 0\n        while i < 10 >> \n            i +=  1\n            if i == 5  >> break\n        <<\n        print(i)\n        ", "ListNode__[IDENTIFIER:i__var_assign_node, While_Node__ListNode__[IDENTIFIER:i__var_assign_node, [(( INTEGER:5__NumberNode EE IDENTIFIER:i__var_access_node ), __BreakNode__, false)]__<nil>__IfNode], IDENTIFIER:print__var_access_node__Call_Node]"},
 		{"let counter = 0\n        for i = 0 -> 10 >>\n            if i == 5 | i == 7 >> continue\n            counter += 1\n        <<\n        print(counter)\n        ", "ListNode__[IDENTIFIER:counter__var_assign_node, For_Node__ListNode__[[(( ( INTEGER:7__NumberNode EE IDENTIFIER:i__var_access_node ) KEYWORD:or ( INTEGER:5__NumberNode EE IDENTIFIER:i__var_access_node ) ), __ContinueNode__, false)]__<nil>__IfNode, IDENTIFIER:counter__var_assign_node], IDENTIFIER:print__var_access_node__Call_Node]"},
@@ -50,9 +66,19 @@ func TestParser(t *testing.T) {
 		{"let x = 0; print(x+1)", "ListNode__[IDENTIFIER:x__var_assign_node, IDENTIFIER:print__var_access_node__Call_Node]"},
 		{"let x = test_case; print(x +  hello)", "ListNode__[IDENTIFIER:x__var_assign_node, IDENTIFIER:print__var_access_node__Call_Node]"},
 		{"let x = 17; print(x*2 + 7 / 3 - 8)", "ListNode__[IDENTIFIER:x__var_assign_node, IDENTIFIER:print__var_access_node__Call_Node]"},
+
+		// test cases that produced errors
+		{"for i= 1 -- 5 >> print(i) ", "Expected '->'  found UNTIL ''"},
+		{"for i= 1 -> 5 >> \n print(i) ", "Expected '<<'  found EOF ''"},
+		{"x[0}", "Expected ']' after index 0"},
+		{"x['test']", "Expected index (integer or identifier) after [ "},
+		{"if true ", "Expected >>' found EOF ''"},
+		{"if true {", "Expected >>' found LCURLY'{'"},
+		// {"if true >", "Expected >>' found LCURLY'{'"},
 	}
 	fmt.Println("started Testing")
 	for i, Case := range testCases {
+
 		name := fmt.Sprintf("case_%02d", i)
 		t.Run(name, func(t *testing.T) {
 			runner(i, Case, t)
@@ -69,12 +95,17 @@ func runner(i int, Case testCase, t *testing.T) {
 		t.Errorf("lexer returned an error: %v", err)
 	}
 
-	// fmt.Printf("finsh plexing in %d\n", i)
-
 	par := Parser{Tokens: tokens, idx: 0, currToken: tokens[0]}
 	ast := par.Parse()
-	if ast.Err != nil && Case.want != "<nil>" {
-		t.Errorf("Parser returned an error: %v", ast.Err)
+	if ast.Err != nil {
+		var targetErr *LangErr.LangError
+
+		if errors.As(ast.Err, &targetErr) {
+			if !reflect.DeepEqual(targetErr.Details, Case.want) {
+				t.Errorf("lexer(%q) = %v; want %v", targetErr.Details, err, Case.want)
+				t.Errorf("Failed TestCase : %d\n", i)
+			}
+		}
 		return
 	}
 	var got string
