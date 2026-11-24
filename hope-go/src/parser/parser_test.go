@@ -62,15 +62,20 @@ func TestParser(t *testing.T) {
 
 		// test cases that produced errors
 		{"for i= 1 -- 5 >> print(i) ", "Expected '->'  found UNTIL ''"},
-		{"for i= 1 -> 5 >> \n print(i) ", "Expected '<<'  found EOF ''"},
+		{"for i= 1 -> 5 >> \n print(i) ", "Expected '<<' found EOF '' "},
 		{"x[0}", "Expected ']' after index 0"},
 		{"x['test']", "Expected index (integer or identifier) after [ "},
-		{"if true ", "Expected '>>' found EOF ''"},
-		{"if true {", "Expected '>>' found LCURLY ''"},
+		{"if true ", "Expected '>>' found EOF '' "},
+		{"if true {", "Expected '>>' found LCURLY '' "},
+		{"while true ", "Expected '>>' found EOF '' "},
+		{"[1,2,3", "Expected ',' or ']' found EOF '' "},
+		{"[", "Expected ']' , keyword, identifier  or values found EOF '' "},
+		{"[,", "Expected ']' , keyword, identifier  or values found  COMMA '' "},
+		{"['abs',  , ] ", "Expected int, float, identifier, '+', '-' , '('  or '[' "},
+		{"while true  >> \n print('1') \n ", "Expected '<<' found EOF '' "},
 	}
 	fmt.Println("started Testing")
 	for i, Case := range testCases {
-
 		name := fmt.Sprintf("case_%02d", i)
 		t.Run(name, func(t *testing.T) {
 			runner(i, Case, t)
@@ -94,7 +99,7 @@ func runner(i int, Case testCase, t *testing.T) {
 
 		if errors.As(ast.Err, &targetErr) {
 			if !reflect.DeepEqual(targetErr.Details, Case.want) {
-				t.Errorf("lexer(%q) = %v; want %v", targetErr.Details, err, Case.want)
+				t.Errorf("Parser(%q) = %v; want %v", targetErr.Details, err, Case.want)
 				t.Errorf("Failed TestCase : %d\n", i)
 			}
 		}
