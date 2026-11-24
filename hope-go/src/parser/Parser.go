@@ -521,7 +521,7 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 	if par.currToken.Type != lexer.TOKEN_START {
 		return *res.Failure(&LangErr.LangError{
 			Name:     "InvalidSyntaxErorr",
-			Details:  fmt.Sprintf("Expected >>' found %s '%s'", par.currToken.Type, par.currToken.Value),
+			Details:  fmt.Sprintf("Expected '>>' found %s '%s'", par.currToken.Type, par.currToken.Value),
 			StartPos: &par.currToken.Pos,
 			EndPos:   &par.currToken.EndPos,
 		})
