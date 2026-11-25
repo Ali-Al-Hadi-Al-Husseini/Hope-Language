@@ -14,6 +14,47 @@ type testcase struct {
 	want      []string
 }
 
+var fuzzEdgeSeeds = []string{
+	"",
+	"\"\"",
+	"''",
+	"\"a\"",
+	"'a'",
+	"'unclosed",
+	"\"unclosed",
+	"123.",
+	".5",
+	"0123",
+	"123.12.1",
+	"+=",
+	"-=",
+	"*=",
+	"/=",
+	"%=",
+	"^=",
+	"->",
+	"--",
+	">>",
+	"<<",
+	">=",
+	"<=",
+	"==",
+	"!=",
+	"=",
+	"!",
+	"&",
+	"|",
+	"# comment without newline",
+	"# comment with newline\nlet x = 1",
+	";;;\n\n\t  \n",
+	"let x = 1; y += 2",
+	"+= 1",
+	"func f(a, b) >> return a + b\n<<",
+	"@",
+	"$",
+	"~",
+	"\x00",
+}
 var tests = []testcase{
 	{"", []string{"EOF"}},
 	{"# comment test", []string{"EOF"}},
@@ -77,6 +118,9 @@ var tests = []testcase{
 func FuzzLexer(f *testing.F) {
 	for _, tc := range tests {
 		f.Add(tc.expresion)
+	}
+	for _, seed := range fuzzEdgeSeeds {
+		f.Add(seed)
 	}
 	f.Fuzz(func(t *testing.T, code string) {
 		lex := CreateLexer("test.hope", code)
