@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	LangErr "github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/LangErr"
+	"github.com/Ali-Al-Hadi-Al-Husseini/Hope-Language/hope-go/src/LangErr"
 )
 
 type testcase struct {
@@ -120,8 +120,21 @@ func FuzzLexer(f *testing.F) {
 		f.Add(seed)
 	}
 	f.Fuzz(func(t *testing.T, code string) {
-		lex := CreateLexer("test.hope", code)
-		lex.Tokenize()
+		lex1 := CreateLexer("test.hope", code)
+		tokens1, err1 := lex1.Tokenize()
+
+		lex2 := CreateLexer("test.hope", code)
+		tokens2, err2 := lex2.Tokenize()
+
+		if (err1 == nil) != (err2 == nil) {
+			t.Fatalf("non-deterministic error presence for %q: first=%v, second=%v", code, err1, err2)
+		}
+		if err1 != nil && err2 != nil && err1.Error() != err2.Error() {
+			t.Fatalf("non-deterministic error message for %q: first=%q, second=%q", code, err1.Error(), err2.Error())
+		}
+		if !reflect.DeepEqual(tokens1, tokens2) {
+			t.Fatalf("non-deterministic tokens for %q:\nfirst = %#v\nsecond= %#v", code, tokens1, tokens2)
+		}
 	})
 
 }
