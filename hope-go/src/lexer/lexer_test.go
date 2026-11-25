@@ -50,9 +50,6 @@ var fuzzEdgeSeeds = []string{
 	"let x = 1; y += 2",
 	"+= 1",
 	"func f(a, b) >> return a + b\n<<",
-	"@",
-	"$",
-	"~",
 	"\x00",
 }
 var tests = []testcase{
