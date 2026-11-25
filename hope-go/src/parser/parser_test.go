@@ -63,6 +63,9 @@ func TestParser(t *testing.T) {
 		// test cases that produced errors
 		{"for i= 1 -- 5 >> print(i) ", "Expected '->'  found UNTIL ''"},
 		{"for i= 1 -> 5 >> \n print(i) ", "Expected '<<' found EOF '' "},
+		{"for 1 -> 5 >> print(i) ", "Expected Identifier after For loop declartion found INTEGER '1'"},
+		{"for i > 1 -> 5 >> \n print(i) ", "Expected '=' after identifier found  GT ''"},
+
 		{"x[0}", "Expected ']' after index 0"},
 		{"x['test']", "Expected index (integer or identifier) after [ "},
 		{"if true ", "Expected '>>' found EOF '' "},
@@ -100,7 +103,6 @@ func runner(i int, Case testCase, t *testing.T) {
 		if errors.As(ast.Err, &targetErr) {
 			if !reflect.DeepEqual(targetErr.Details, Case.want) {
 				t.Errorf("Parser(%q) = %v; want %v", targetErr.Details, err, Case.want)
-				t.Errorf("Failed TestCase : %d\n", i)
 			}
 		}
 		return
@@ -115,7 +117,6 @@ func runner(i int, Case testCase, t *testing.T) {
 	if !reflect.DeepEqual(got, Case.want) {
 		if err == nil {
 			t.Errorf("parser(%q) =\n %v; want \n %v", Case.expresion, got, Case.want)
-			t.Errorf("Failed TestCase : %d\n", i)
 		} else {
 			t.Errorf("lexer returned an error: %v", err)
 		}
