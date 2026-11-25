@@ -88,6 +88,9 @@ func TestLexer(t *testing.T) {
 						t.Errorf("lexer(%q) = %v; want %v", tt.expresion, err, tt.want)
 						t.Errorf("Failed TestCase : %d\n", i)
 					}
+				} else {
+					t.Errorf("lexer(%q) = %v; want %v", tt.expresion, err, tt.want)
+					t.Errorf("Failed TestCase : %d\n", i)
 				}
 				return
 			}
