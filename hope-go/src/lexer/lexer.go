@@ -186,13 +186,9 @@ func (lex *lexer) makeOperationAndEqual(tokens *[]Token, opType string, advance 
 	}
 	// optimzation here might be needed to use less tokens
 	if lex.currChar == '=' {
-		*tokens = append(*tokens, Token{Type: TOKEN_EQ, Pos: startPos})
-		if len(*tokens) > 2 {
-			previous := (*tokens)[len(*tokens)-2].Value
-			*tokens = append(*tokens, Token{Type: TOKEN_IDENTIFIER, Value: previous, Pos: startPos})
-		}
+		*tokens = append(*tokens, Token{Type: opType, Pos: startPos})
 		lex.advance()
-		return Token{Type: opType, Pos: *lex.pos}, nil
+		return Token{Type: TOKEN_EQ, Pos: startPos}, nil
 
 	}
 
