@@ -86,11 +86,9 @@ func TestLexer(t *testing.T) {
 				if errors.As(err, &targetErr) {
 					if !reflect.DeepEqual(targetErr.Details, tt.want[0]) {
 						t.Errorf("lexer(%q) = %v; want %v", tt.expresion, err, tt.want)
-						t.Errorf("Failed TestCase : %d\n", i)
 					}
 				} else {
 					t.Errorf("lexer(%q) = %v; want %v", tt.expresion, err, tt.want)
-					t.Errorf("Failed TestCase : %d\n", i)
 				}
 				return
 			}
@@ -104,9 +102,7 @@ func TestLexer(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-
 				t.Errorf("lexer(%q) = %v; want %v", tt.expresion, got, tt.want)
-				t.Errorf("Failed TestCase : %d\n", i)
 
 			} else {
 				fmt.Printf("Passed TestCase : %d\n", i)
