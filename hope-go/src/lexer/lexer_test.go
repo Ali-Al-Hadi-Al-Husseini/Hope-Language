@@ -135,6 +135,27 @@ func FuzzLexer(f *testing.F) {
 		if !reflect.DeepEqual(tokens1, tokens2) {
 			t.Fatalf("non-deterministic tokens for %q:\nfirst = %#v\nsecond= %#v", code, tokens1, tokens2)
 		}
+		if err1 == nil {
+			if len(tokens1) == 0 {
+				t.Fatalf("expected at least TOKEN_EOF for %q, got empty slice", code)
+			}
+			last := tokens1[len(tokens1)-1]
+			if last.Type != TOKEN_EOF {
+				t.Fatalf("expected final token %s for %q, got %s", TOKEN_EOF, code, last.Type)
+			}
+
+			for i, tok := range tokens1 {
+				if tok.Type == "" {
+					t.Fatalf("token[%d] has empty Type for %q: %#v", i, code, tok)
+				}
+				switch tok.Type {
+				case TOKEN_INT, TOKEN_FLOAT, TOKEN_STRING, TOKEN_IDENTIFIER, TOKEN_KEYWORD:
+					if tok.Value == "" && tok.Type != TOKEN_STRING {
+						t.Fatalf("token[%d] of type %s has empty Value for %q", i, tok.Type, code)
+					}
+				}
+			}
+		}
 	})
 
 }
