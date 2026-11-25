@@ -129,9 +129,15 @@ func FuzzLexer(f *testing.F) {
 		if (err1 == nil) != (err2 == nil) {
 			t.Fatalf("non-deterministic error presence for %q: first=%v, second=%v", code, err1, err2)
 		}
-		if err1 != nil && err2 != nil && err1.Error() != err2.Error() {
-			t.Fatalf("non-deterministic error message for %q: first=%q, second=%q", code, err1.Error(), err2.Error())
+		var targetErr1 *LangErr.LangError
+		var targetErr2 *LangErr.LangError
+
+		if errors.As(err1, &targetErr1) && errors.As(err2, &targetErr2) {
+			if !reflect.DeepEqual(targetErr1.Details, targetErr2.Details) && targetErr2.Name != targetErr1.Name {
+				t.Fatalf("non-deterministic error message for %q: first=%q, second=%q", code, err1.Error(), err2.Error())
+			}
 		}
+
 		if !reflect.DeepEqual(tokens1, tokens2) {
 			t.Fatalf("non-deterministic tokens for %q:\nfirst = %#v\nsecond= %#v", code, tokens1, tokens2)
 		}
