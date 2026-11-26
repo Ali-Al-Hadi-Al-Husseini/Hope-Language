@@ -691,7 +691,7 @@ func (par *Parser) FuncExpression() ParserResult {
 	if par.currToken.Type != lexer.TOKEN_LPAREN {
 		return *res.Failure(&LangErr.LangError{
 			Name:     "InvalidSyntaxErorr",
-			Details:  fmt.Sprintf("Expected '(' after function declaration  found %s '%s' ", par.currToken.Type, par.currToken.Value),
+			Details:  fmt.Sprintf("Expected '(' after function declaration found %s '%s' ", par.currToken.Type, par.currToken.Value),
 			StartPos: &par.currToken.Pos,
 			EndPos:   &par.currToken.EndPos,
 		})
@@ -741,7 +741,7 @@ func (par *Parser) FuncExpression() ParserResult {
 	if par.currToken.Type != lexer.TOKEN_START {
 		return *res.Failure(&LangErr.LangError{
 			Name:     "InvalidSyntaxErorr",
-			Details:  fmt.Sprintf("Expected '>>' found %s '%s' ", par.currToken.Type, par.currToken.Value),
+			Details:  fmt.Sprintf("Expected '>>' after function declaration found %s '%s' ", par.currToken.Type, par.currToken.Value),
 			StartPos: &par.currToken.Pos,
 			EndPos:   &par.currToken.EndPos,
 		})
@@ -832,7 +832,7 @@ func (par *Parser) ForExpression() ParserResult {
 			Name:     "InvalidSyntaxErorr",
 			StartPos: &par.currToken.Pos,
 			EndPos:   &par.currToken.EndPos,
-			Details:  fmt.Sprintf("Expected '->'  found %s '%s'", par.currToken.Type, par.currToken.Value),
+			Details:  fmt.Sprintf("Expected '->' found %s '%s'", par.currToken.Type, par.currToken.Value),
 		})
 	}
 	par.RegisterAdvancement(res)
