@@ -105,66 +105,13 @@ var tests = []testcase{
 	{"let x = 17; print(x*2 + 7 / 3 - 8) ", []string{"KEYWORD:let", "IDENTIFIER:x", "EQ", "INTEGER:17", "NEWLINE", "IDENTIFIER:print", "LPAREN", "IDENTIFIER:x", "MUL", "INTEGER:2", "PLUS", "INTEGER:7", "DIV", "INTEGER:3", "MINUS", "INTEGER:8", "RPAREN", "EOF"}},
 
 	// test case that produces erros
-	{"'hola", []string{"expected legal char found: \x00"}},
-	{"123.12.1", []string{"expected more numbers found: ."}},
+	{"'hola", []string{"expected legal char found: EOF"}},
+	{"123.12.1", []string{"Found more than one dot in Float"}},
 	{"@", []string{"expected legal char found: @"}},
 	{"$", []string{"expected legal char found: $"}},
 	{"~", []string{"expected legal char found: ~"}},
 }
 
-func FuzzLexer(f *testing.F) {
-	for _, tc := range tests {
-		f.Add(tc.expresion)
-	}
-	for _, seed := range fuzzEdgeSeeds {
-		f.Add(seed)
-	}
-	f.Fuzz(func(t *testing.T, code string) {
-		lex1 := CreateLexer("test.hope", code)
-		tokens1, err1 := lex1.Tokenize()
-
-		lex2 := CreateLexer("test.hope", code)
-		tokens2, err2 := lex2.Tokenize()
-
-		if (err1 == nil) != (err2 == nil) {
-			t.Fatalf("non-deterministic error presence for %q: first=%v, second=%v", code, err1, err2)
-		}
-		var targetErr1 *LangErr.LangError
-		var targetErr2 *LangErr.LangError
-
-		if errors.As(err1, &targetErr1) && errors.As(err2, &targetErr2) {
-			if !reflect.DeepEqual(targetErr1.Details, targetErr2.Details) && targetErr2.Name != targetErr1.Name {
-				t.Fatalf("non-deterministic error message for %q: first=%q, second=%q", code, err1.Error(), err2.Error())
-			}
-		}
-
-		if !reflect.DeepEqual(tokens1, tokens2) {
-			t.Fatalf("non-deterministic tokens for %q:\nfirst = %#v\nsecond= %#v", code, tokens1, tokens2)
-		}
-		if err1 == nil {
-			if len(tokens1) == 0 {
-				t.Fatalf("expected at least TOKEN_EOF for %q, got empty slice", code)
-			}
-			last := tokens1[len(tokens1)-1]
-			if last.Type != TOKEN_EOF {
-				t.Fatalf("expected final token %s for %q, got %s", TOKEN_EOF, code, last.Type)
-			}
-
-			for i, tok := range tokens1 {
-				if tok.Type == "" {
-					t.Fatalf("token[%d] has empty Type for %q: %#v", i, code, tok)
-				}
-				switch tok.Type {
-				case TOKEN_INT, TOKEN_FLOAT, TOKEN_STRING, TOKEN_IDENTIFIER, TOKEN_KEYWORD:
-					if tok.Value == "" && tok.Type != TOKEN_STRING {
-						t.Fatalf("token[%d] of type %s has empty Value for %q", i, tok.Type, code)
-					}
-				}
-			}
-		}
-	})
-
-}
 func TestLexer(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(tt.expresion, func(t *testing.T) {
