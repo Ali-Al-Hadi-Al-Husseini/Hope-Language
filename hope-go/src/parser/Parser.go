@@ -20,6 +20,13 @@ func (par *Parser) advance() lexer.Token {
 	}
 	return par.currToken
 }
+func (par *Parser) peekNext() lexer.Token {
+	newIdx := par.idx + 1
+	if newIdx < len(par.Tokens)-1 {
+		return par.Tokens[newIdx]
+	}
+	return par.Tokens[len(par.Tokens)-1]
+}
 
 func (par *Parser) RegisterAdvancement(res ParserResult) {
 	res.RegisterAdvancement()
@@ -364,6 +371,24 @@ func (par *Parser) Most() ParserResult {
 		identifier := token.Value
 
 		switch par.currToken.Type {
+		case lexer.TOKEN_PLUS, lexer.TOKEN_DIV, lexer.TOKEN_MODULE, lexer.TOKEN_MINUS, lexer.TOKEN_POW, lexer.TOKEN_MUL:
+			opTok := par.currToken
+
+			if par.peekNext().Type == lexer.TOKEN_EQ {
+				par.RegisterAdvancement(res)
+				par.RegisterAdvancement(res)
+				newValue := res.Register(par.Expression())
+				if res.Err != nil {
+					return res
+				}
+				return *res.Succses(&VarAssignNode{
+					NameToken: token,
+					ValueNode: newValue,
+					opTok:     opTok,
+				})
+
+			}
+
 		case lexer.TOKEN_EQ:
 			par.RegisterAdvancement(res)
 
