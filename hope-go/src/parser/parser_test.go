@@ -57,6 +57,8 @@ var testCases = []testCase{
 	{"let x = test_case; print(x +  hello)", "ListNode__[IDENTIFIER:x__var_assign_node, IDENTIFIER:print__var_access_node__Call_Node]"},
 	{"let x = 17; print(x*2 + 7 / 3 - 8)", "ListNode__[IDENTIFIER:x__var_assign_node, IDENTIFIER:print__var_access_node__Call_Node]"},
 	{"for i = 1 -> 6 skip 2  >> print('i')", "ListNode__[For_Node__IDENTIFIER:print__var_access_node__Call_Node]"},
+	{"func suba(a,b,c) >> \n \n  let sub = a - b \n  \n sub -= c \n \n << ", "ListNode__[functionDefNode__IDENTIFIER:suba__ListNode__[IDENTIFIER:sub__var_assign_node, IDENTIFIER:sub__var_assign_node]]"},
+
 	// test cases that produced errors
 	{"for i= 1 -- 5 >> print(i) ", "Expected '->' found UNTIL ''"},
 	{"for i= 1 -> 5 >> \n print(i) ", "Expected '<<' found EOF '' "},
@@ -81,6 +83,14 @@ var testCases = []testCase{
 	{"func suba(a,b,h)  a - b - h ", "Expected '>>' after function declaration found IDENTIFIER 'a' "},
 	{"func suba(a,b,h) >> \n return  a - b - h ", "Expected '<<' found EOF '' "},
 	{"let mul = func (x,y) \n ", "Expected '>>' after function declaration found NEWLINE '' "},
+	{"func add (a,b) >> \n\n            if a > b >>\n                return a+b + 1 \n         else  \n                return a + b -1\n            <<\n        <<\n        let z = add(1,2)   \n        ", "Expected '>>' found NEWLINE '' "},
+	{"func add (a,b) >> \n\n            if a > b >>\n                return a+b + 1 \n         else  >>\n     print('hello world') \n        ", "Expected '<<' found EOF '' "},
+	{"func add (a,b) >> \n\n            if a > b >>\n                return a+b + 1 \n         else  >> print('hello world') \n        ", "Expected '<<' found EOF '' "},
+	{"let 123 = 8 ", "Expected identifier found INTEGER '123'"},
+	{"let abc  8 ", "Expected '=' found INTEGER '8'"},
+	{"let abc  = 8 ;  >> ", "Expected  '+', '-', '*' , '/'  or any other operation"},
+	{"let a = (1 * 3", "Expected ')' "},
+	{"sub(7,10,1 ", "Expected ',' or ')'"},
 }
 
 func TestParser(t *testing.T) {
