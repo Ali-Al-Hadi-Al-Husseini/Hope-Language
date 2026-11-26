@@ -58,7 +58,7 @@ var testCases = []testCase{
 	{"let x = 17; print(x*2 + 7 / 3 - 8)", "ListNode__[IDENTIFIER:x__var_assign_node, IDENTIFIER:print__var_access_node__Call_Node]"},
 	{"for i = 1 -> 6 skip 2  >> print('i')", "ListNode__[For_Node__IDENTIFIER:print__var_access_node__Call_Node]"},
 	// test cases that produced errors
-	{"for i= 1 -- 5 >> print(i) ", "Expected '->'  found UNTIL ''"},
+	{"for i= 1 -- 5 >> print(i) ", "Expected '->' found UNTIL ''"},
 	{"for i= 1 -> 5 >> \n print(i) ", "Expected '<<' found EOF '' "},
 	{"for 1 -> 5 >> print(i) ", "Expected Identifier after For loop declartion found INTEGER '1'"},
 	{"for i > 1 -> 5 >> \n print(i) ", "Expected '=' after identifier found  GT ''"},
@@ -74,11 +74,13 @@ var testCases = []testCase{
 	{"['abs',  , ] ", "Expected int, float, identifier, '+', '-' , '('  or '[' "},
 	{"while true  >> \n print('1') \n ", "Expected '<<' found EOF '' "},
 	{"for i = 1 -> 5  \n print('i')", "Expected '>>' found NEWLINE '' "},
-	{"func suba ,b,c) >> a - b - c ", "Expected '(' after function declaration  found  COMMA '' "},
+	{"func suba ,b,c) >> a - b - c ", "Expected '(' after function declaration found  COMMA '' "},
 	{"func sub(1,b,c) >> a - b - c ", "Expected ')' or  identifier after function declaration found INTEGER '1' "},
 	{"func suba(a,7.91,c) >> a - b - c ", "Expected identifier after found FLOAT '7.91' "},
 	{"func suba(a,b 77 >> a - b - c ", "Expected ')' or ','  after function declaration found INTEGER '77' "},
-	{"func suba(a,b,h)  a - b - h ", "Expected '>>' found IDENTIFIER 'a' "},
+	{"func suba(a,b,h)  a - b - h ", "Expected '>>' after function declaration found IDENTIFIER 'a' "},
+	{"func suba(a,b,h) >> \n return  a - b - h ", "Expected '<<' found EOF '' "},
+	{"let mul = func (x,y) \n ", "Expected '>>' after function declaration found NEWLINE '' "},
 }
 
 func TestParser(t *testing.T) {
