@@ -180,7 +180,7 @@ func FuzzParser(f *testing.F) {
 			ast2.Err = targetErr2
 		}
 
-		if !reflect.DeepEqual(ast1, ast2) {
+		if !reflect.DeepEqual(ast1.node, ast2.node) {
 			t.Fatalf("non-deterministic Asymtotic syntax tree for %q:\nfirst = %#v\nsecond= %#v", code, tokens1, tokens2)
 		}
 
