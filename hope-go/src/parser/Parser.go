@@ -13,6 +13,12 @@ type Parser struct {
 	currToken lexer.Token
 }
 
+func CreateParser(tokens []lexer.Token) Parser {
+	par := Parser{Tokens: tokens, idx: -1}
+	par.advance()
+	return par
+}
+
 func (par *Parser) advance() lexer.Token {
 	par.idx += 1
 	if par.idx >= 0 && par.idx < len(par.Tokens) {
