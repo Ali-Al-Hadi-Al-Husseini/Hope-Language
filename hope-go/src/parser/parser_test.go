@@ -132,6 +132,61 @@ var fuzzEdgeSeeds = []string{
 	"\x00",
 }
 
+func FuzzParser(f *testing.F) {
+	for _, tc := range testCases {
+		f.Add(tc.expresion)
+	}
+	for _, seed := range fuzzEdgeSeeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, code string) {
+		t.Logf("fuzz input: %q", code)
+		lex1 := lexer.CreateLexer("test.hope", code)
+		tokens1, err1 := lex1.Tokenize()
+
+		lex2 := lexer.CreateLexer("test.hope", code)
+		tokens2, err2 := lex2.Tokenize()
+
+		if err1 != nil && err2 != nil {
+			var targetErr1 *LangErr.LangError
+			var targetErr2 *LangErr.LangError
+			if errors.As(err1, &targetErr1) && errors.As(err2, &targetErr2) {
+				if !reflect.DeepEqual(targetErr1, targetErr2) {
+					t.Fatalf("non-deterministic Asymtotic syntax tree for %q:\nfirst = %#v\nsecond= %#v", code, tokens1, tokens2)
+				}
+			}
+			return
+
+		}
+		par1 := CreateParser(tokens1)
+		ast1 := par1.Parse()
+
+		par2 := CreateParser(tokens2)
+
+		ast2 := par2.Parse()
+
+		if (ast1.Err == nil) != (ast2.Err == nil) {
+			t.Fatalf("non-deterministic parser error presence for %q: first=%v, second=%v", code, err1, err2)
+		}
+		var targetErr1 *LangErr.LangError
+		var targetErr2 *LangErr.LangError
+
+		if errors.As(ast1.Err, &targetErr1) && errors.As(ast2.Err, &targetErr2) {
+			if !reflect.DeepEqual(targetErr1, targetErr2) {
+				t.Fatalf("non-deterministic paresererror message for %q: first=%q, second=%q", code, err1.Error(), err2.Error())
+			}
+			ast1.Err = targetErr1
+			ast2.Err = targetErr2
+		}
+
+		if !reflect.DeepEqual(ast1, ast2) {
+			t.Fatalf("non-deterministic Asymtotic syntax tree for %q:\nfirst = %#v\nsecond= %#v", code, tokens1, tokens2)
+		}
+
+	})
+
+}
 func TestParser(t *testing.T) {
 
 	fmt.Println("started Testing")
