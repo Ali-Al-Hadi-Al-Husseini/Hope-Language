@@ -791,11 +791,11 @@ func (par *Parser) FuncExpression() ParserResult {
 
 }
 
-func (par *Parser) ListCallExpression() ParserResult {
-	res := ParserResult{}
-	par.RegisterAdvancement(res)
-	return res
-}
+//	func (par *Parser) ListCallExpression() ParserResult {
+//		res := ParserResult{}
+//		par.RegisterAdvancement(res)
+//		return res
+//	}
 func (par *Parser) ForExpression() ParserResult {
 	res := ParserResult{}
 	par.RegisterAdvancement(res)
