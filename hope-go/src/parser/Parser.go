@@ -572,8 +572,8 @@ func (par *Parser) IfElifMaker(keyword string) ParserResult {
 		if par.currToken.Type == lexer.TOKEN_END {
 			par.RegisterAdvancement(res)
 		} else {
-			new_cases := res.Register(par.ElifElseExpression()).(*ControlFlow)
-			if res.Err != nil {
+			new_cases, ok := res.Register(par.ElifElseExpression()).(*ControlFlow)
+			if res.Err != nil || !ok {
 				return res
 			}
 			cntrl.Cases = append(cntrl.Cases, new_cases.Cases...)
