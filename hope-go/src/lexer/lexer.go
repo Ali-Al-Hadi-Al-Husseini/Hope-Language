@@ -86,10 +86,13 @@ func (lex *lexer) Tokenize() ([]Token, error) {
 				tokens = append(tokens, lex.makeIdentifier())
 
 			default:
-
+				currChar := string(lex.currChar)
+				if currChar == "\x00" {
+					currChar = "EOF"
+				}
 				return []Token{}, &LangErr.LangError{
 					Name:     "IllegalChar",
-					Details:  fmt.Sprintf("expected legal char found: %c", lex.currChar),
+					Details:  fmt.Sprintf("expected legal char found: %s", currChar),
 					StartPos: lex.pos,
 				}
 			}
@@ -119,7 +122,7 @@ func (lex *lexer) makeNumber() (Token, error) {
 			if dotCount > 0 {
 				return Token{}, &LangErr.LangError{
 					Name:     "IllegalChar",
-					Details:  fmt.Sprintf("expected more numbers found: %c", lex.currChar),
+					Details:  "Found more than one dot in Float",
 					StartPos: lex.pos,
 				}
 			}
@@ -166,9 +169,13 @@ func (lex *lexer) makeStr() (Token, error) {
 	}
 
 	if lex.currChar != currQuotes {
+		currChar := string(lex.currChar)
+		if currChar == "\x00" {
+			currChar = "EOF"
+		}
 		return Token{}, &LangErr.LangError{
 			Name:     "IllegalChar",
-			Details:  fmt.Sprintf("expected legal char found: %c", lex.currChar),
+			Details:  fmt.Sprintf("expected legal char found: %s", currChar),
 			StartPos: lex.pos,
 		}
 	}
