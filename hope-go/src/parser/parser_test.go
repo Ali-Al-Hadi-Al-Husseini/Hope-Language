@@ -93,6 +93,45 @@ var testCases = []testCase{
 	{"sub(7,10,1 ", "Expected ',' or ')'"},
 }
 
+var fuzzEdgeSeeds = []string{
+	"",
+	"\"\"",
+	"''",
+	"\"a\"",
+	"'a'",
+	"'unclosed",
+	"\"unclosed",
+	"123.",
+	".5",
+	"0123",
+	"123.12.1",
+	"+=",
+	"-=",
+	"*=",
+	"/=",
+	"%=",
+	"^=",
+	"->",
+	"--",
+	">>",
+	"<<",
+	">=",
+	"<=",
+	"==",
+	"!=",
+	"=",
+	"!",
+	"&",
+	"|",
+	"# comment without newline",
+	"# comment with newline\nlet x = 1",
+	";;;\n\n\t  \n",
+	"let x = 1; y += 2",
+	"+= 1",
+	"func f(a, b) >> return a + b\n<<",
+	"\x00",
+}
+
 func TestParser(t *testing.T) {
 
 	fmt.Println("started Testing")
@@ -104,16 +143,14 @@ func TestParser(t *testing.T) {
 	}
 }
 
-// wg *sync.WaitGroup
 func runner(Case testCase, t *testing.T) {
-	// defer wg.Done()
 	lex := lexer.CreateLexer("test.hope", Case.expresion)
 	tokens, err := lex.Tokenize()
 	if err != nil {
 		t.Errorf("lexer returned an error: %v", err)
 	}
 
-	par := Parser{Tokens: tokens, idx: 0, currToken: tokens[0]}
+	par := CreateParser(tokens)
 	ast := par.Parse()
 	if ast.Err != nil {
 		var targetErr *LangErr.LangError
